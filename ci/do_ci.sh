@@ -6,7 +6,7 @@ set -e
 [ -z "${BUILD_DIR}" ] && export BUILD_DIR=/build
 mkdir -p "${BUILD_DIR}"
 
-BAZEL_OPTIONS="--jobs 1"
+BAZEL_OPTIONS="--jobs 6"
 BAZEL_TEST_OPTIONS="$BAZEL_OPTIONS --test_output=errors"
 
 
@@ -14,7 +14,7 @@ if [[ "$1" == "clang_tidy" ]]; then
   export CC=/usr/bin/clang-6.0
   CC=/usr/bin/clang-6.0 bazel build \
         $BAZEL_OPTIONS \
-        //src/... //test/... //benchmark/... //include/...
+        //src/... //test/... 
   ./ci/gen_compilation_database.sh
   ./ci/fix_compilation_database.py
   ./ci/run_clang_tidy.sh |& tee /clang-tidy-result.txt
@@ -24,17 +24,8 @@ if [[ "$1" == "clang_tidy" ]]; then
     exit 1
   fi
   exit 0
-elif [[ "$1" == "bazel.asan" ]]; then
-  bazel build -c dbg \
-        $BAZEL_OPTIONS \
-        --copt=-fsanitize=address \
-        --linkopt=-fsanitize=address \
-        //...
-  bazel test -c dbg \
-        $BAZEL_TEST_OPTIONS \
-        --copt=-fsanitize=address \
-        --linkopt=-fsanitize=address \
-        //...
+elif [[ "$1" == "test" ]]; then
+  bazel test -c dbg //...
   exit 0
 elif [[ "$1" == "bazel.coverage" ]]; then
   mkdir -p /coverage

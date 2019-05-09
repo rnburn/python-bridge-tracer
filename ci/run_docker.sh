@@ -2,7 +2,7 @@
 
 set -e
 
-BUILD_IMAGE=python-cpp-bridge-build
+BUILD_IMAGE=python-tracer-bridge-build
 docker image inspect "$BUILD_IMAGE" &> /dev/null || {
   docker build -t "$BUILD_IMAGE" ci
 }

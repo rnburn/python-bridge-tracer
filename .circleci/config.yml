@@ -1,13 +1,13 @@
 version: 2
 jobs:
-  asan:
+  test:
     docker:
       - image: ubuntu:18.04
     steps:
       - checkout
       - run: ./ci/setup_build_environment.sh
       - run: ./ci/install_bazel.sh
-      - run: ./ci/do_ci.sh bazel.asan
+      - run: ./ci/do_ci.sh test
 
   clang_tidy:
     docker:
@@ -43,6 +43,6 @@ workflows:
   version: 2
   build_test_and_deploy:
     jobs:
-      - asan
+      - test
       - coverage
       - clang_tidy
