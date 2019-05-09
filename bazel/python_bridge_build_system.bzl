@@ -37,7 +37,6 @@ def python_bridge_copts(is_3rd_party=False):
     ]
   return [
       "-DPy_LIMITED_API",
-      "-Wl,--unresolved-symbols=ignore-in-object-files",
       "-Wall",
       "-Wextra",
       "-Werror",
