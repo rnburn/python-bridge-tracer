@@ -27,22 +27,9 @@ jobs:
           path: /clang-tidy-errors.txt
           destination: /clang-tidy-errors.txt
 
-  coverage:
-    docker:
-      - image: ubuntu:18.04
-    steps:
-      - checkout
-      - run: ./ci/setup_build_environment.sh
-      - run: ./ci/install_bazel.sh
-      - run: ./ci/do_ci.sh bazel.coverage
-      - store_artifacts:
-          path: /coverage
-          desination: coverage
-
 workflows:
   version: 2
   build_test_and_deploy:
     jobs:
       - test
-      - coverage
       - clang_tidy

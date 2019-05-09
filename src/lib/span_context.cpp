@@ -70,7 +70,7 @@ SpanContextBridge getSpanContext(PyObject* object) noexcept {
 // getBaggage
 //--------------------------------------------------------------------------------------------------
 static PyObject* getBaggage(SpanContextObject* self, PyObject* /*ignored*/) noexcept {
-  // TODO: fill in
+  // TODO(rnburn): fill in
   (void)self;
   Py_RETURN_NONE;
 }

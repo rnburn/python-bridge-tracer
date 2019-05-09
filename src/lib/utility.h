@@ -40,7 +40,9 @@ class FinalAction {
   FinalAction& operator=(FinalAction&&) = delete;
 
   ~FinalAction() noexcept {
-    if (invoke_) f_();
+    if (invoke_) {
+      f_();
+    }
   }
 
  private:

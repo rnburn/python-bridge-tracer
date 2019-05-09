@@ -27,19 +27,4 @@ if [[ "$1" == "clang_tidy" ]]; then
 elif [[ "$1" == "test" ]]; then
   bazel test $BAZEL_TEST_OPTIONS -c dbg //...
   exit 0
-elif [[ "$1" == "bazel.coverage" ]]; then
-  mkdir -p /coverage
-  rm -rf /coverage/*
-  bazel coverage \
-    $BAZEL_TEST_OPTIONS \
-    --instrument_test_targets \
-    --experimental_cc_coverage \
-    --combined_report=lcov \
-    --instrumentation_filter="-3rd_party,-benchmark,-test" \
-    --coverage_report_generator=@bazel_tools//tools/test/CoverageOutputGenerator/java/com/google/devtools/coverageoutputgenerator:Main \
-    //...
-  genhtml bazel-out/_coverage/_coverage_report.dat \
-          --output-directory /coverage
-  tar czf /coverage.tgz /coverage
-  exit 0
 fi

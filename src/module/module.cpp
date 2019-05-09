@@ -17,8 +17,8 @@ static PyObject* loadTracer(PyObject* /*self*/, PyObject* args, PyObject* keywor
   char* library;
   char* config;
   PyObject* scope_manager = nullptr;
-  if (!PyArg_ParseTupleAndKeywords(args, keywords, "ss|O:load_tracer", keyword_names, 
-        &library, &config, &scope_manager)) {
+  if (PyArg_ParseTupleAndKeywords(args, keywords, "ss|O:load_tracer", keyword_names, 
+        &library, &config, &scope_manager) == 0) {
     return nullptr;
   }
   if (scope_manager == nullptr) {
@@ -30,7 +30,7 @@ static PyObject* loadTracer(PyObject* /*self*/, PyObject* args, PyObject* keywor
   return makeTracer(makeDynamicTracer(library, config), scope_manager);
 } catch(const std::exception& e) {
   std::cerr << "failed to load tracer: " << e.what() << "\n";
-  // TODO: make exception
+  // TODO(rnburn): make exception
   Py_RETURN_NONE;
 }
 

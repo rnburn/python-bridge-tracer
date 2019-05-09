@@ -13,7 +13,7 @@ class DynamicSpan : public opentracing::Span {
  public:
   DynamicSpan(std::shared_ptr<const opentracing::Tracer> tracer,
               std::unique_ptr<opentracing::Span>&& span) noexcept
-      : tracer_{tracer}, span_{std::move(span)} {}
+      : tracer_{std::move(tracer)}, span_{std::move(span)} {}
 
  private:
   std::shared_ptr<const opentracing::Tracer> tracer_;
@@ -76,7 +76,9 @@ class DynamicTracer : public opentracing::Tracer,
       opentracing::string_view operation_name,
       const opentracing::StartSpanOptions& options) const noexcept final {
     auto span = tracer_->StartSpanWithOptions(operation_name, options);
-    if (span == nullptr) return nullptr;
+    if (span == nullptr) {
+      return nullptr;
+    }
     return std::unique_ptr<opentracing::Span>{
         new (std::nothrow) DynamicSpan(shared_from_this(), std::move(span))};
   }
@@ -138,11 +140,11 @@ class DynamicTracer : public opentracing::Tracer,
 // the opentracing::Tracer is freed. To accomplish this, we build a new
 // opentracing::Tracer that wraps the plugin's tracer and owns the
 // opentracing::DynamicTracingLibraryHandle.
-std::shared_ptr<opentracing::Tracer> makeDynamicTracer(const char* library_name,
+std::shared_ptr<opentracing::Tracer> makeDynamicTracer(const char* tracer_library,
                                                        const char* config) {
   std::string error_message;
   auto handle_maybe =
-      opentracing::DynamicallyLoadTracingLibrary(library_name, error_message);
+      opentracing::DynamicallyLoadTracingLibrary(tracer_library, error_message);
   if (!handle_maybe) {
     throw std::runtime_error{error_message};
   }

@@ -49,7 +49,7 @@ static PyObject* setTag(SpanObject* self, PyObject* args, PyObject* keywords) no
 // logKeyValues
 //--------------------------------------------------------------------------------------------------
 static PyObject* logKeyValues(SpanObject* self, PyObject* args, PyObject* keywords) noexcept {
-  // TODO: fill in
+  // TODO(rnburn): fill in
   (void)self;
   (void)args;
   (void)keywords;
@@ -60,7 +60,7 @@ static PyObject* logKeyValues(SpanObject* self, PyObject* args, PyObject* keywor
 // setBaggageItem
 //--------------------------------------------------------------------------------------------------
 static PyObject* setBaggageItem(SpanObject* self, PyObject* args, PyObject* keywords) noexcept {
-  // TODO: fill in
+  // TODO(rnburn): fill in
   (void)self;
   (void)args;
   (void)keywords;
@@ -71,7 +71,7 @@ static PyObject* setBaggageItem(SpanObject* self, PyObject* args, PyObject* keyw
 // getBaggageItem
 //--------------------------------------------------------------------------------------------------
 static PyObject* getBaggageItem(SpanObject* self, PyObject* args, PyObject* keywords) noexcept {
-  // TODO: fill in
+  // TODO(rnburn): fill in
   (void)self;
   (void)args;
   (void)keywords;
@@ -82,7 +82,7 @@ static PyObject* getBaggageItem(SpanObject* self, PyObject* args, PyObject* keyw
 // logEvent
 //--------------------------------------------------------------------------------------------------
 static PyObject* logEvent(SpanObject* self, PyObject* args, PyObject* keywords) noexcept {
-  // TODO: fill in
+  // TODO(rnburn): fill in
   (void)self;
   (void)args;
   (void)keywords;
@@ -93,7 +93,7 @@ static PyObject* logEvent(SpanObject* self, PyObject* args, PyObject* keywords) 
 // log
 //--------------------------------------------------------------------------------------------------
 static PyObject* log(SpanObject* self, PyObject* args, PyObject* keywords) noexcept {
-  // TODO: fill in
+  // TODO(rnburn): fill in
   (void)self;
   (void)args;
   (void)keywords;

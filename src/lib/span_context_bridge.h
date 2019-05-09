@@ -7,7 +7,7 @@
 namespace python_bridge_tracer {
 class SpanContextBridge {
  public:
-   explicit SpanContextBridge(const std::shared_ptr<const opentracing::Span>& span) noexcept;
+   explicit SpanContextBridge(std::shared_ptr<const opentracing::Span> span) noexcept;
 
    explicit SpanContextBridge(
        std::unique_ptr<const opentracing::SpanContext>&& span_context) noexcept;

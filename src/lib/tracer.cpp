@@ -148,7 +148,7 @@ static PyObject* startSpan(TracerObject* self, PyObject* args, PyObject* keyword
 // inject
 //--------------------------------------------------------------------------------------------------
 static PyObject* inject(TracerObject* self, PyObject* args, PyObject* keywords) noexcept {
-  // TODO: fill in
+  // TODO(rnburn): fill in
   (void)self;
   (void)args;
   (void)keywords;
@@ -159,7 +159,7 @@ static PyObject* inject(TracerObject* self, PyObject* args, PyObject* keywords) 
 // extract
 //--------------------------------------------------------------------------------------------------
 static PyObject* extract(TracerObject* self, PyObject* args, PyObject* keywords) noexcept {
-  // TODO: fill in
+  // TODO(rnburn): fill in
   (void)self;
   (void)args;
   (void)keywords;
@@ -272,9 +272,6 @@ bool setupTracerClass(PyObject* module) noexcept {
   }
   TracerType = tracer_type;
   auto rcode = PyModule_AddObject(module, "_Tracer", tracer_type);
-  if (rcode != 0) {
-    return false;
-  }
-  return true;
+  return rcode == 0;
 }
 } // namespace python_bridge_tracer
