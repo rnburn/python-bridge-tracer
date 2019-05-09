@@ -84,10 +84,10 @@ static PyObject* startActiveSpan(TracerObject* self, PyObject* args, PyObject* k
       "p"  // ignore_active_span
       "p" // finish_on_close
       ":start_active_span";
-  if (!PyArg_ParseTupleAndKeywords(
+  if (PyArg_ParseTupleAndKeywords(
           args, keywords, arguments_format, keyword_names, &operation_name,
           &operation_name_length, &parent, &references, &tags, &start_time,
-          &ignore_active_span, &finish_on_close)) {
+          &ignore_active_span, &finish_on_close) == 0) {
     return nullptr;
   }
   auto span_bridge = self->tracer_bridge->makeSpan(
@@ -130,10 +130,10 @@ static PyObject* startSpan(TracerObject* self, PyObject* args, PyObject* keyword
       "d"  // start_time
       "p"  // ignore_active_span
       ":start_span";
-  if (!PyArg_ParseTupleAndKeywords(args, keywords, arguments_format,
+  if (PyArg_ParseTupleAndKeywords(args, keywords, arguments_format,
                                    keyword_names, &operation_name,
                                    &operation_name_length, &parent, &references,
-                                   &tags, &start_time, &ignore_active_span)) {
+                                   &tags, &start_time, &ignore_active_span) == 0) {
     return nullptr;
   }
   auto span_bridge = self->tracer_bridge->makeSpan(

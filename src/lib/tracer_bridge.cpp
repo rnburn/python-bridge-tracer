@@ -181,7 +181,7 @@ static bool getCppReferences(
   if (!getNumReferences(references, num_references)) {
     return false;
   }
-  cpp_references.reserve(static_cast<size_t>(num_references + 2));
+  cpp_references.reserve(static_cast<size_t>(num_references) + 2);
   if (!addParentReference(parent, cpp_references)) {
     return false;
   }

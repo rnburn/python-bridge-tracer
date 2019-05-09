@@ -228,9 +228,6 @@ bool setupSpanClass(PyObject* module) noexcept {
   }
   SpanType = span_type;
   auto rcode = PyModule_AddObject(module, "_Span", span_type);
-  if (rcode != 0) {
-    return false;
-  }
-  return true;
+  return rcode == 0;
 }
 } // namespace python_bridge_tracer

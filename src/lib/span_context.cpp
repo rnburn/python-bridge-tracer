@@ -110,9 +110,6 @@ bool setupSpanContextClass(PyObject* module) noexcept {
   }
   SpanContextType = span_context_type;
   auto rcode = PyModule_AddObject(module, "_SpanContext", span_context_type);
-  if (rcode != 0) {
-    return false;
-  }
-  return true;
+  return rcode == 0;
 }
 } // namespace python_bridge_tracer
