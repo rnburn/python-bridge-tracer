@@ -1,16 +1,22 @@
 #pragma once
 
 #include <utility>
+#include <type_traits>
 
 namespace python_bridge_tracer {
-template <class T>
+template <class T, typename std::enable_if<!std::is_function<T>::value>::type* = nullptr>
 void* toVoidPtr(T* t) noexcept {
   return reinterpret_cast<void*>(t);
 }
 
-template <class T>
+template <class T, typename std::enable_if<!std::is_function<T>::value>::type* = nullptr>
 void* toVoidPtr(const T* t) noexcept {
   return toVoidPtr(const_cast<T*>(t));
+}
+
+template <class T, typename std::enable_if<std::is_function<T>::value>::type* = nullptr>
+void* toVoidPtr(T* t) noexcept {
+  return reinterpret_cast<void*>(t);
 }
 
 // FinalAction and finally
