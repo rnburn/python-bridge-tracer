@@ -6,7 +6,7 @@ set -e
 [ -z "${BUILD_DIR}" ] && export BUILD_DIR=/build
 mkdir -p "${BUILD_DIR}"
 
-BAZEL_OPTIONS="--jobs 6"
+BAZEL_OPTIONS="--jobs 1"
 BAZEL_TEST_OPTIONS="$BAZEL_OPTIONS --test_output=errors"
 
 
@@ -25,7 +25,7 @@ if [[ "$1" == "clang_tidy" ]]; then
   fi
   exit 0
 elif [[ "$1" == "test" ]]; then
-  bazel test -c dbg //...
+  bazel test $BAZEL_TEST_OPTIONS -c dbg //...
   exit 0
 elif [[ "$1" == "bazel.coverage" ]]; then
   mkdir -p /coverage
