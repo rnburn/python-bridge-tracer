@@ -31,8 +31,7 @@ static void deallocSpanContext(SpanContextObject* self) noexcept {
 //--------------------------------------------------------------------------------------------------
 PyObject* makeSpanContext(
     std::unique_ptr<SpanContextBridge>&& span_context_bridge) noexcept {
-  auto result = PyObject_New(SpanContextObject,
-                             reinterpret_cast<PyTypeObject*>(SpanContextType));
+  auto result = newPythonObject<SpanContextObject>(SpanContextType);
   if (result == nullptr) {
     return nullptr;
   }

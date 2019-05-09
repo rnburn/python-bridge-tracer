@@ -1,5 +1,7 @@
 #pragma once
 
+#include <Python.h>
+
 #include <utility>
 #include <type_traits>
 
@@ -17,6 +19,13 @@ void* toVoidPtr(const T* t) noexcept {
 template <class T, typename std::enable_if<std::is_function<T>::value>::type* = nullptr>
 void* toVoidPtr(T* t) noexcept {
   return reinterpret_cast<void*>(t);
+}
+
+// Like PyObject_New except that it doesn't use c-casts so that clang-tidy won't complain.
+template <class T>
+T* newPythonObject(PyObject* type) {
+  auto result = _PyObject_New(reinterpret_cast<PyTypeObject*>(type));
+  return reinterpret_cast<T*>(result);
 }
 
 // FinalAction and finally

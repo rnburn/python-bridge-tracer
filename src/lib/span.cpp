@@ -193,7 +193,7 @@ static PyType_Spec SpanTypeSpec = {PYTHON_BRIDGE_TRACER_MODULE "._Span",
 // startSpan
 //--------------------------------------------------------------------------------------------------
 PyObject* makeSpan(std::unique_ptr<SpanBridge>&& span_bridge, PyObject* tracer) noexcept {
-  auto result = PyObject_New(SpanObject, reinterpret_cast<PyTypeObject*>(SpanType));
+  auto result = newPythonObject<SpanObject>(SpanType);
   if (result == nullptr) {
     return nullptr;
   }

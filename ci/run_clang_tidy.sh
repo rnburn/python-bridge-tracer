@@ -18,6 +18,7 @@ CHECKS="\
 -google-explicit-constructor,\
 -modernize-make-unique,\
 -modernize-use-transparent-functors,\
+-modernize-use-auto,\
 -performance-move-const-arg,\
 -hicpp-explicit-conversions,\
 -hicpp-member-init,\

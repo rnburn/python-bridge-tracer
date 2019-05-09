@@ -249,8 +249,7 @@ PyObject* makeTracer(std::shared_ptr<opentracing::Tracer> tracer,
                      PyObject* scope_manager) noexcept try {
   std::unique_ptr<TracerBridge> tracer_bridge{
       new TracerBridge{std::move(tracer)}};
-  auto result =
-      PyObject_New(TracerObject, reinterpret_cast<PyTypeObject*>(TracerType));
+  auto result = newPythonObject<TracerObject>(TracerType);
   if (result == nullptr) {
     return nullptr;
   }
