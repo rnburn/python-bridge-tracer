@@ -31,7 +31,7 @@ elif [[ "$1" == "bazel.coverage" ]]; then
   mkdir -p /coverage
   rm -rf /coverage/*
   bazel coverage \
-    $BAZEL_OPTIONS \
+    $BAZEL_TEST_OPTIONS \
     --instrument_test_targets \
     --experimental_cc_coverage \
     --combined_report=lcov \
