@@ -3,6 +3,9 @@
 #include "utility.h"
 
 namespace python_bridge_tracer {
+//--------------------------------------------------------------------------------------------------
+// getThreadLocalScopeManager
+//--------------------------------------------------------------------------------------------------
 PyObject* getThreadLocalScopeManager() noexcept {
   auto scope_managers = PyImport_ImportModule("opentracing.scope_managers");
   if (scope_managers == nullptr) {
