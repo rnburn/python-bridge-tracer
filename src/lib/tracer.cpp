@@ -254,6 +254,7 @@ PyObject* makeTracer(std::shared_ptr<opentracing::Tracer> tracer,
     return nullptr;
   }
   result->tracer_bridge = tracer_bridge.release();
+  Py_INCREF(scope_manager);
   result->scope_manager = scope_manager;
   return reinterpret_cast<PyObject*>(result);
 } catch (const std::exception& e) {
