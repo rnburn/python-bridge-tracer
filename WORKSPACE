@@ -14,10 +14,10 @@ git_repository(
     commit = "3721d32c14d3639ff94320c780a60a6e658fb033",
 )
 
-http_archive(
-   name = "rules_foreign_cc",
-   strip_prefix = "rules_foreign_cc-master",
-   url = "https://github.com/bazelbuild/rules_foreign_cc/archive/master.zip",
+git_repository(
+    name = "rules_foreign_cc",
+    remote = "https://github.com/bazelbuild/rules_foreign_cc",
+    commit = "bf99a0bf0080bcd50431aa7124ef23e5afd58325",
 )
 
 load("@rules_foreign_cc//:workspace_definitions.bzl", "rules_foreign_cc_dependencies")
