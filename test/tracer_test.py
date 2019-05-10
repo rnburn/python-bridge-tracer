@@ -103,6 +103,18 @@ class TestTracer(unittest.TestCase):
         self.assertEqual(references[0]['trace_id'], traceIdA)
         self.assertEqual(references[0]['span_id'], spanIdA)
 
+    def test_start_span_error(self):
+        tracer, traces_path = make_mock_tracer()
+        with self.assertRaises(TypeError):
+            tracer.start_span(345)
+        with self.assertRaises(Exception):
+            tracer.start_span('abc', references=['duck'])
+        with self.assertRaises(Exception):
+            tracer.start_span('abc', tags=[])
+        with self.assertRaises(Exception):
+            tracer.start_span('abc', child_of='cat')
+
+
     def test_set_operation_name(self):
         tracer, traces_path = make_mock_tracer()
         span = tracer.start_span('abc')
