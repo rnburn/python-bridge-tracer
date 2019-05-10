@@ -39,17 +39,6 @@ PyObject* makeSpanContext(
   return reinterpret_cast<PyObject*>(result);
 }
 
-PyObject* makeSpanContext(
-    std::unique_ptr<const opentracing::SpanContext>&& span_context) noexcept {
-  return makeSpanContext(std::unique_ptr<SpanContextBridge>{
-      new SpanContextBridge{std::move(span_context)}});
-}
-
-PyObject* makeSpanContext(std::shared_ptr<const opentracing::Span>& span) noexcept {
-  return makeSpanContext(
-      std::unique_ptr<SpanContextBridge>{new SpanContextBridge{span}});
-}
-
 //--------------------------------------------------------------------------------------------------
 // isSpanContext
 //--------------------------------------------------------------------------------------------------
