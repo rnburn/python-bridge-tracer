@@ -37,7 +37,7 @@ SpanBridge::SpanBridge(std::shared_ptr<opentracing::Span> span) noexcept
 //--------------------------------------------------------------------------------------------------
 // setOperationName
 //--------------------------------------------------------------------------------------------------
-PyObject* SpanBridge::setOperationName(PyObject* args,
+bool SpanBridge::setOperationName(PyObject* args,
                                        PyObject* keywords) noexcept {
   static char* keyword_names[] = {const_cast<char*>("operation_name"), nullptr};
   const char* operation_name = nullptr;
@@ -45,11 +45,11 @@ PyObject* SpanBridge::setOperationName(PyObject* args,
   if (PyArg_ParseTupleAndKeywords(args, keywords, "s#:set_operation_name",
                                   keyword_names, &operation_name,
                                   &operation_name_length) == 0) {
-    return nullptr;
+    return false;
   }
   span_->SetOperationName(opentracing::string_view{
       operation_name, static_cast<size_t>(operation_name_length)});
-  Py_RETURN_NONE;
+  return true;
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -107,7 +107,7 @@ bool SpanBridge::setTagKeyValue(PyObject* key, PyObject* value) noexcept {
 //--------------------------------------------------------------------------------------------------
 // setBaggageItem
 //--------------------------------------------------------------------------------------------------
-PyObject* SpanBridge::setBaggageItem(PyObject* args,
+bool SpanBridge::setBaggageItem(PyObject* args,
                                      PyObject* keywords) noexcept {
   static char* keyword_names[] = {const_cast<char*>("key"),
                                   const_cast<char*>("value"), nullptr};
@@ -118,12 +118,12 @@ PyObject* SpanBridge::setBaggageItem(PyObject* args,
   if (PyArg_ParseTupleAndKeywords(args, keywords, "s#s#:set_baggage_item",
                                   keyword_names, &key_data, &key_length,
                                   &value_data, &value_length) == 0) {
-    return nullptr;
+    return false;
   }
   span_->SetBaggageItem(
       opentracing::string_view{key_data, static_cast<size_t>(key_length)},
       opentracing::string_view{value_data, static_cast<size_t>(value_length)});
-  Py_RETURN_NONE;
+  return true;
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -148,21 +148,19 @@ PyObject* SpanBridge::getBaggageItem(PyObject* args, PyObject* keywords) noexcep
 //--------------------------------------------------------------------------------------------------
 // setTag
 //--------------------------------------------------------------------------------------------------
-PyObject* SpanBridge::setTag(PyObject* args, PyObject* keywords) noexcept {
+bool SpanBridge::setTag(PyObject* args, PyObject* keywords) noexcept {
   static char* keyword_names[] = {const_cast<char*>("key"),
-                                  const_cast<char*>("value"),
-                                  nullptr};
+                                  const_cast<char*>("value"), nullptr};
   const char* key_data;
   int key_length;
   PyObject* value;
   if (PyArg_ParseTupleAndKeywords(args, keywords, "s#O:set_tag", keyword_names,
-                                   &key_data, &key_length, &value) == 0) {
-    return nullptr;
+                                  &key_data, &key_length, &value) == 0) {
+    return false;
   }
-  if (!setTagKeyValue(opentracing::string_view{key_data, static_cast<size_t>(key_length)}, value)) {
-    return nullptr;
-  }
-  Py_RETURN_NONE;
+  return setTagKeyValue(
+      opentracing::string_view{key_data, static_cast<size_t>(key_length)},
+      value);
 }
 
 //--------------------------------------------------------------------------------------------------
