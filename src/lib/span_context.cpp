@@ -14,8 +14,10 @@ namespace python_bridge_tracer {
 //--------------------------------------------------------------------------------------------------
 namespace {
 struct SpanContextObject {
+  // clang-format off
   PyObject_HEAD
   SpanContextBridge* span_context_bridge;
+  // clang-format off
 };
 } // namespace
 

@@ -16,8 +16,11 @@ namespace python_bridge_tracer {
 //--------------------------------------------------------------------------------------------------
 namespace {
 struct SpanObject {
-  PyObject_HEAD SpanBridge* span_bridge;
+  // clang-format off
+  PyObject_HEAD 
+  SpanBridge* span_bridge;
   PyObject* tracer;
+  // clang-formst on
 };
 }  // namespace
 
@@ -37,7 +40,7 @@ static SpanObject* setOperationName(SpanObject* self, PyObject* args,
   if (!self->span_bridge->setOperationName(args, keywords)) {
     return nullptr;
   }
-  Py_INCREF(self);
+  Py_INCREF(reinterpret_cast<PyObject*>(self));
   return self;
 }
 
@@ -49,7 +52,7 @@ static SpanObject* setTag(SpanObject* self, PyObject* args,
   if (!self->span_bridge->setTag(args, keywords)) {
     return nullptr;
   }
-  Py_INCREF(self);
+  Py_INCREF(reinterpret_cast<PyObject*>(self));
   return self;
 }
 
@@ -73,7 +76,7 @@ static SpanObject* setBaggageItem(SpanObject* self, PyObject* args,
   if (!self->span_bridge->setBaggageItem(args, keywords)) {
     return nullptr;
   }
-  Py_INCREF(self);
+  Py_INCREF(reinterpret_cast<PyObject*>(self));
   return self;
 }
 
