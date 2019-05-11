@@ -105,6 +105,47 @@ bool SpanBridge::setTagKeyValue(PyObject* key, PyObject* value) noexcept {
 }
 
 //--------------------------------------------------------------------------------------------------
+// setBaggageItem
+//--------------------------------------------------------------------------------------------------
+PyObject* SpanBridge::setBaggageItem(PyObject* args,
+                                     PyObject* keywords) noexcept {
+  static char* keyword_names[] = {const_cast<char*>("key"),
+                                  const_cast<char*>("value"), nullptr};
+  const char* key_data = nullptr;
+  int key_length = 0;
+  const char* value_data = nullptr;
+  int value_length = 0;
+  if (PyArg_ParseTupleAndKeywords(args, keywords, "s#s#:set_baggage_item",
+                                  keyword_names, &key_data, &key_length,
+                                  &value_data, &value_length) == 0) {
+    return nullptr;
+  }
+  span_->SetBaggageItem(
+      opentracing::string_view{key_data, static_cast<size_t>(key_length)},
+      opentracing::string_view{value_data, static_cast<size_t>(value_length)});
+  Py_RETURN_NONE;
+}
+
+//--------------------------------------------------------------------------------------------------
+// getBaggageItem
+//--------------------------------------------------------------------------------------------------
+PyObject* SpanBridge::getBaggageItem(PyObject* args, PyObject* keywords) noexcept {
+  static char* keyword_names[] = {const_cast<char*>("key"), nullptr};
+  const char* key_data = nullptr;
+  int key_length = 0;
+  if (PyArg_ParseTupleAndKeywords(args, keywords, "s#:get_baggage_item",
+                                  keyword_names, &key_data, &key_length) == 0) {
+    return nullptr;
+  }
+  auto value = span_->BaggageItem(
+      opentracing::string_view{key_data, static_cast<size_t>(key_length)});
+  if (value.empty()) {
+    Py_RETURN_NONE;
+  }
+  return PyUnicode_FromStringAndSize(value.data(), static_cast<Py_ssize_t>(value.size()));
+}
+
+//--------------------------------------------------------------------------------------------------
 // setTag
 //--------------------------------------------------------------------------------------------------
 PyObject* SpanBridge::setTag(PyObject* args, PyObject* keywords) noexcept {

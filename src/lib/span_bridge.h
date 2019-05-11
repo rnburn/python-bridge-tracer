@@ -54,6 +54,22 @@ class SpanBridge {
    PyObject* setTag(PyObject* args, PyObject* keywords) noexcept;
 
    /**
+    * Set a baggage item on the span.
+    * @param args python function arguments
+    * @param keywrods python function keywords
+    * @return Py_None on success
+    */
+   PyObject* setBaggageItem(PyObject* args, PyObject* keywords) noexcept;
+
+   /**
+    * Get a baggage item on the span.
+    * @param args python function arguments
+    * @param keywrods python function keywords
+    * @return a python string with the value of the baggage item
+    */
+   PyObject* getBaggageItem(PyObject* args, PyObject* keywords) noexcept;
+
+   /**
     * Finish the span.
     * @param args python function arguments
     * @param keywrods python function keywords

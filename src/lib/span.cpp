@@ -60,22 +60,14 @@ static PyObject* logKeyValues(SpanObject* self, PyObject* args, PyObject* keywor
 // setBaggageItem
 //--------------------------------------------------------------------------------------------------
 static PyObject* setBaggageItem(SpanObject* self, PyObject* args, PyObject* keywords) noexcept {
-  // TODO(rnburn): fill in
-  (void)self;
-  (void)args;
-  (void)keywords;
-  Py_RETURN_NONE;
+  return self->span_bridge->setBaggageItem(args, keywords);
 }
 
 //--------------------------------------------------------------------------------------------------
 // getBaggageItem
 //--------------------------------------------------------------------------------------------------
 static PyObject* getBaggageItem(SpanObject* self, PyObject* args, PyObject* keywords) noexcept {
-  // TODO(rnburn): fill in
-  (void)self;
-  (void)args;
-  (void)keywords;
-  Py_RETURN_NONE;
+  return self->span_bridge->getBaggageItem(args, keywords);
 }
 
 //--------------------------------------------------------------------------------------------------
