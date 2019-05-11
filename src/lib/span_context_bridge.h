@@ -1,8 +1,11 @@
 #pragma once
 
+#include <memory>
+
+#include <Python.h>
+
 #include "opentracing/span.h"
 
-#include <memory>
 
 namespace python_bridge_tracer {
 /**
@@ -19,6 +22,11 @@ class SpanContextBridge {
     * @return the OpenTracing-C++ span context associated with the bridge.
     */
    const opentracing::SpanContext& span_context() const noexcept;
+
+   /**
+    * @return the span context's baggage as a python dictionary.
+    */
+   PyObject* getBaggageAsPyDict() const noexcept;
 
  private:
    std::shared_ptr<const opentracing::Span> span_;

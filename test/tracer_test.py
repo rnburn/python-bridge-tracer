@@ -148,6 +148,9 @@ class TestTracer(unittest.TestCase):
         span = tracer.start_span('abc', tags={'a':1})
         span.set_baggage_item('abc', '123')
         self.assertEqual(span.get_baggage_item('abc'), '123')
+        self.assertEqual(span.context.baggage, {'abc':'123'})
+        span.set_baggage_item('xyz', '456')
+        self.assertEqual(span.context.baggage, {'abc':'123', 'xyz':'456'})
 
     def test_get_tracer_from_span(self):
         tracer, traces_path = make_mock_tracer()

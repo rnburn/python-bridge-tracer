@@ -58,9 +58,7 @@ SpanContextBridge getSpanContext(PyObject* object) noexcept {
 // getBaggage
 //--------------------------------------------------------------------------------------------------
 static PyObject* getBaggage(SpanContextObject* self, PyObject* /*ignored*/) noexcept {
-  // TODO(rnburn): fill in
-  (void)self;
-  Py_RETURN_NONE;
+  return self->span_context_bridge->getBaggageAsPyDict();
 }
 
 
