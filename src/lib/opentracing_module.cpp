@@ -25,4 +25,18 @@ PyObject* getThreadLocalScopeManager() noexcept {
   });
   return PyObject_CallObject(scope_manager, nullptr);
 }
+
+//--------------------------------------------------------------------------------------------------
+// getUnsupportedFormatException
+//--------------------------------------------------------------------------------------------------
+PyObject* getUnsupportedFormatException() noexcept {
+  auto opentracing = PyImport_ImportModule("opentracing");
+  if (opentracing == nullptr) {
+    return nullptr;
+  }
+  auto cleanup_opentracing = finally([opentracing] {
+      Py_DECREF(opentracing);
+  });
+  return PyObject_GetAttrString(opentracing, "UnsupportedFormatException");
+}
 } // namespace python_bridge_tracer

@@ -5,6 +5,7 @@
 
 #include "python_bridge_tracer/module.h"
 
+#include "opentracing_module.h"
 #include "tracer_bridge.h"
 #include "span.h"
 #include "utility.h"
@@ -255,8 +256,15 @@ PyObject* makeTracer(std::shared_ptr<opentracing::Tracer> tracer,
   if (result == nullptr) {
     return nullptr;
   }
+  if (scope_manager == nullptr) {
+    scope_manager = getThreadLocalScopeManager();
+    if (scope_manager == nullptr) {
+      return nullptr;
+    }
+  } else {
+    Py_INCREF(scope_manager);
+  }
   result->tracer_bridge = tracer_bridge.release();
-  Py_INCREF(scope_manager);
   result->scope_manager = scope_manager;
   return reinterpret_cast<PyObject*>(result);
 } catch (const std::exception& e) {
