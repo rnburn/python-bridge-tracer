@@ -17,11 +17,13 @@ namespace python_bridge_tracer {
 //--------------------------------------------------------------------------------------------------
 namespace {
 struct TracerObject {
+  // clang-format off
   PyObject_HEAD
   TracerBridge* tracer_bridge;
   PyObject* scope_manager;
+  // clang-format on
 };
-} // namespace
+}  // namespace
 
 //--------------------------------------------------------------------------------------------------
 // deallocTracer

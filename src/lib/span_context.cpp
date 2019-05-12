@@ -14,8 +14,10 @@ namespace python_bridge_tracer {
 //--------------------------------------------------------------------------------------------------
 namespace {
 struct SpanContextObject {
+  // clang-format off
   PyObject_HEAD
   SpanContextBridge* span_context_bridge;
+  // clang-format off
 };
 } // namespace
 
@@ -58,9 +60,7 @@ SpanContextBridge getSpanContext(PyObject* object) noexcept {
 // getBaggage
 //--------------------------------------------------------------------------------------------------
 static PyObject* getBaggage(SpanContextObject* self, PyObject* /*ignored*/) noexcept {
-  // TODO(rnburn): fill in
-  (void)self;
-  Py_RETURN_NONE;
+  return self->span_context_bridge->getBaggageAsPyDict();
 }
 
 

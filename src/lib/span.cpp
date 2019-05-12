@@ -16,11 +16,13 @@ namespace python_bridge_tracer {
 //--------------------------------------------------------------------------------------------------
 namespace {
 struct SpanObject {
-  PyObject_HEAD
+  // clang-format off
+  PyObject_HEAD 
   SpanBridge* span_bridge;
   PyObject* tracer;
+  // clang-formst on
 };
-} // namespace
+}  // namespace
 
 //--------------------------------------------------------------------------------------------------
 // deallocSpan
@@ -33,22 +35,32 @@ static void deallocSpan(SpanObject* self) noexcept {
 //--------------------------------------------------------------------------------------------------
 // setOperationName
 //--------------------------------------------------------------------------------------------------
-static PyObject* setOperationName(SpanObject* self, PyObject* args, PyObject* keywords) noexcept {
-  return self->span_bridge->setOperationName(args, keywords);
+static SpanObject* setOperationName(SpanObject* self, PyObject* args,
+                                    PyObject* keywords) noexcept {
+  if (!self->span_bridge->setOperationName(args, keywords)) {
+    return nullptr;
+  }
+  Py_INCREF(reinterpret_cast<PyObject*>(self));
+  return self;
 }
-
 
 //--------------------------------------------------------------------------------------------------
 // setTag
 //--------------------------------------------------------------------------------------------------
-static PyObject* setTag(SpanObject* self, PyObject* args, PyObject* keywords) noexcept {
-  return self->span_bridge->setTag(args, keywords);
+static SpanObject* setTag(SpanObject* self, PyObject* args,
+                          PyObject* keywords) noexcept {
+  if (!self->span_bridge->setTag(args, keywords)) {
+    return nullptr;
+  }
+  Py_INCREF(reinterpret_cast<PyObject*>(self));
+  return self;
 }
 
 //--------------------------------------------------------------------------------------------------
 // logKeyValues
 //--------------------------------------------------------------------------------------------------
-static PyObject* logKeyValues(SpanObject* self, PyObject* args, PyObject* keywords) noexcept {
+static PyObject* logKeyValues(SpanObject* self, PyObject* args,
+                              PyObject* keywords) noexcept {
   // TODO(rnburn): fill in
   (void)self;
   (void)args;
@@ -59,29 +71,28 @@ static PyObject* logKeyValues(SpanObject* self, PyObject* args, PyObject* keywor
 //--------------------------------------------------------------------------------------------------
 // setBaggageItem
 //--------------------------------------------------------------------------------------------------
-static PyObject* setBaggageItem(SpanObject* self, PyObject* args, PyObject* keywords) noexcept {
-  // TODO(rnburn): fill in
-  (void)self;
-  (void)args;
-  (void)keywords;
-  Py_RETURN_NONE;
+static SpanObject* setBaggageItem(SpanObject* self, PyObject* args,
+                                  PyObject* keywords) noexcept {
+  if (!self->span_bridge->setBaggageItem(args, keywords)) {
+    return nullptr;
+  }
+  Py_INCREF(reinterpret_cast<PyObject*>(self));
+  return self;
 }
 
 //--------------------------------------------------------------------------------------------------
 // getBaggageItem
 //--------------------------------------------------------------------------------------------------
-static PyObject* getBaggageItem(SpanObject* self, PyObject* args, PyObject* keywords) noexcept {
-  // TODO(rnburn): fill in
-  (void)self;
-  (void)args;
-  (void)keywords;
-  Py_RETURN_NONE;
+static PyObject* getBaggageItem(SpanObject* self, PyObject* args,
+                                PyObject* keywords) noexcept {
+  return self->span_bridge->getBaggageItem(args, keywords);
 }
 
 //--------------------------------------------------------------------------------------------------
 // logEvent
 //--------------------------------------------------------------------------------------------------
-static PyObject* logEvent(SpanObject* self, PyObject* args, PyObject* keywords) noexcept {
+static PyObject* logEvent(SpanObject* self, PyObject* args,
+                          PyObject* keywords) noexcept {
   // TODO(rnburn): fill in
   (void)self;
   (void)args;
@@ -92,7 +103,8 @@ static PyObject* logEvent(SpanObject* self, PyObject* args, PyObject* keywords) 
 //--------------------------------------------------------------------------------------------------
 // log
 //--------------------------------------------------------------------------------------------------
-static PyObject* log(SpanObject* self, PyObject* args, PyObject* keywords) noexcept {
+static PyObject* log(SpanObject* self, PyObject* args,
+                     PyObject* keywords) noexcept {
   // TODO(rnburn): fill in
   (void)self;
   (void)args;
@@ -103,7 +115,8 @@ static PyObject* log(SpanObject* self, PyObject* args, PyObject* keywords) noexc
 //--------------------------------------------------------------------------------------------------
 // finish
 //--------------------------------------------------------------------------------------------------
-static PyObject* finish(SpanObject* self, PyObject* args, PyObject* keywords) noexcept {
+static PyObject* finish(SpanObject* self, PyObject* args,
+                        PyObject* keywords) noexcept {
   return self->span_bridge->finish(args, keywords);
 }
 
@@ -154,12 +167,14 @@ static PyMethodDef SpanMethods[] = {
      METH_VARARGS | METH_KEYWORDS, PyDoc_STR("retrieves a baggage item")},
     {"log_event", reinterpret_cast<PyCFunction>(logEvent),
      METH_VARARGS | METH_KEYWORDS, PyDoc_STR("log an event")},
-    {"log", reinterpret_cast<PyCFunction>(log),
-     METH_VARARGS | METH_KEYWORDS, PyDoc_STR("log key-values")},
+    {"log", reinterpret_cast<PyCFunction>(log), METH_VARARGS | METH_KEYWORDS,
+     PyDoc_STR("log key-values")},
     {"finish", reinterpret_cast<PyCFunction>(finish),
      METH_VARARGS | METH_KEYWORDS, PyDoc_STR("finish the span")},
-    {"__enter__", reinterpret_cast<PyCFunction>(enterContext), METH_NOARGS, nullptr},
-    {"__exit__", reinterpret_cast<PyCFunction>(exitContext), METH_VARARGS, nullptr},
+    {"__enter__", reinterpret_cast<PyCFunction>(enterContext), METH_NOARGS,
+     nullptr},
+    {"__exit__", reinterpret_cast<PyCFunction>(exitContext), METH_VARARGS,
+     nullptr},
     {nullptr, nullptr}};
 
 //--------------------------------------------------------------------------------------------------
@@ -175,12 +190,11 @@ static PyGetSetDef SpanGetSetList[] = {
 //--------------------------------------------------------------------------------------------------
 // SpanTypeSlots
 //--------------------------------------------------------------------------------------------------
-static PyType_Slot SpanTypeSlots[] = {
-    {Py_tp_doc, toVoidPtr("CppBridgeSpan")},
-    {Py_tp_dealloc, toVoidPtr(deallocSpan)},
-    {Py_tp_methods, toVoidPtr(SpanMethods)},
-    {Py_tp_getset, toVoidPtr(SpanGetSetList)},
-    {0, nullptr}};
+static PyType_Slot SpanTypeSlots[] = {{Py_tp_doc, toVoidPtr("CppBridgeSpan")},
+                                      {Py_tp_dealloc, toVoidPtr(deallocSpan)},
+                                      {Py_tp_methods, toVoidPtr(SpanMethods)},
+                                      {Py_tp_getset, toVoidPtr(SpanGetSetList)},
+                                      {0, nullptr}};
 
 //--------------------------------------------------------------------------------------------------
 // SpanTypeSpec
@@ -192,7 +206,8 @@ static PyType_Spec SpanTypeSpec = {PYTHON_BRIDGE_TRACER_MODULE "._Span",
 //--------------------------------------------------------------------------------------------------
 // startSpan
 //--------------------------------------------------------------------------------------------------
-PyObject* makeSpan(std::unique_ptr<SpanBridge>&& span_bridge, PyObject* tracer) noexcept {
+PyObject* makeSpan(std::unique_ptr<SpanBridge>&& span_bridge,
+                   PyObject* tracer) noexcept {
   auto result = newPythonObject<SpanObject>(SpanType);
   if (result == nullptr) {
     return nullptr;
@@ -215,7 +230,8 @@ bool isSpan(PyObject* object) noexcept {
 //--------------------------------------------------------------------------------------------------
 SpanContextBridge getSpanContextFromSpan(PyObject* object) noexcept {
   assert(isSpan(object));
-  return SpanContextBridge{reinterpret_cast<SpanObject*>(object)->span_bridge->span()};
+  return SpanContextBridge{
+      reinterpret_cast<SpanObject*>(object)->span_bridge->span()};
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -230,4 +246,4 @@ bool setupSpanClass(PyObject* module) noexcept {
   auto rcode = PyModule_AddObject(module, "_Span", span_type);
   return rcode == 0;
 }
-} // namespace python_bridge_tracer
+}  // namespace python_bridge_tracer

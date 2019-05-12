@@ -114,7 +114,6 @@ class TestTracer(unittest.TestCase):
         with self.assertRaises(Exception):
             tracer.start_span('abc', child_of='cat')
 
-
     def test_set_operation_name(self):
         tracer, traces_path = make_mock_tracer()
         span = tracer.start_span('abc')
@@ -144,6 +143,14 @@ class TestTracer(unittest.TestCase):
         self.assertEqual(len(spans), 1)
         self.assertEqual(spans[0]['tags']['a'], 1)
 
+    def test_baggage1(self):
+        tracer, traces_path = make_mock_tracer()
+        span = tracer.start_span('abc', tags={'a':1})
+        span.set_baggage_item('abc', '123')
+        self.assertEqual(span.get_baggage_item('abc'), '123')
+        self.assertEqual(span.context.baggage, {'abc':'123'})
+        span.set_baggage_item('xyz', '456')
+        self.assertEqual(span.context.baggage, {'abc':'123', 'xyz':'456'})
 
     def test_get_tracer_from_span(self):
         tracer, traces_path = make_mock_tracer()

@@ -25,9 +25,9 @@ class SpanBridge {
     * Change the operation name of a span.
     * @param args python function arguments
     * @param keywrods python function keywords
-    * @return Py_None on success
+    * @return true on success
     */
-   PyObject* setOperationName(PyObject* args, PyObject* keywords) noexcept;
+   bool setOperationName(PyObject* args, PyObject* keywords) noexcept;
 
    /**
     * Set a tag on the span.
@@ -49,9 +49,25 @@ class SpanBridge {
     * Set a tag on the span.
     * @param args python function arguments
     * @param keywrods python function keywords
-    * @return Py_None on success
+    * @return true on success
     */
-   PyObject* setTag(PyObject* args, PyObject* keywords) noexcept;
+   bool setTag(PyObject* args, PyObject* keywords) noexcept;
+
+   /**
+    * Set a baggage item on the span.
+    * @param args python function arguments
+    * @param keywrods python function keywords
+    * @return true on success
+    */
+   bool setBaggageItem(PyObject* args, PyObject* keywords) noexcept;
+
+   /**
+    * Get a baggage item on the span.
+    * @param args python function arguments
+    * @param keywrods python function keywords
+    * @return a python string with the value of the baggage item
+    */
+   PyObject* getBaggageItem(PyObject* args, PyObject* keywords) noexcept;
 
    /**
     * Finish the span.
