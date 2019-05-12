@@ -37,7 +37,15 @@ class TracerBridge {
                                         PyObject* tags, double start_time,
                                         bool ignore_active_span) noexcept;
 
+   PyObject* inject(PyObject* args, PyObject* keywords) noexcept;
+
   private:
    std::shared_ptr<opentracing::Tracer> tracer_;
+
+   bool injectBinary(const opentracing::SpanContext& span_context, PyObject* carrier) noexcept;
+
+   bool injectTextMap(const opentracing::SpanContext& span_context, PyObject* carrier) noexcept;
+
+   bool injectHttpHeaders(const opentracing::SpanContext& span_context, PyObject* carrier) noexcept;
 };
 } // namespace python_bridge_tracer

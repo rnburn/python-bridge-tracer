@@ -3,6 +3,7 @@
 #include "span.h"
 #include "span_context.h"
 #include "utility.h"
+#include "opentracing_module.h"
 
 #include "python_bridge_tracer/module.h"
 
@@ -254,5 +255,82 @@ std::unique_ptr<SpanBridge> TracerBridge::makeSpan(
     return nullptr;
   }
   return span_bridge;
+}
+
+//--------------------------------------------------------------------------------------------------
+// inject
+//--------------------------------------------------------------------------------------------------
+PyObject* TracerBridge::inject(PyObject* args, PyObject* keywords) noexcept {
+  static char* keyword_names[] = {
+    const_cast<char*>("span_context"), 
+    const_cast<char*>("format"), 
+    const_cast<char*>("carrier"), 
+    nullptr};
+  PyObject* span_context = nullptr;
+  const char* format_data = nullptr;
+  int format_length = 0;
+  PyObject* carrier = nullptr;
+  if (PyArg_ParseTupleAndKeywords(args, keywords, "Os#O:inject", keyword_names,
+                                  &span_context, &format_data, &format_length,
+                                  &carrier) == 0) {
+    return nullptr;
+  }
+  if (!isSpanContext(span_context)) {
+    PyErr_Format(PyExc_TypeError,
+                 "span_context must be a " PYTHON_BRIDGE_TRACER_MODULE
+                 "._SpanContext");
+    return nullptr;
+  }
+  opentracing::string_view format{format_data, static_cast<size_t>(format_length)};
+  static opentracing::string_view binary{"binary"}, text_map{"text_map"},
+      http_headers{"http_headers"};
+  bool was_successful = false;
+  if (format == binary) {
+    was_successful =
+        injectBinary(getSpanContext(span_context).span_context(), carrier);
+  } else if (format == text_map) {
+    was_successful =
+        injectTextMap(getSpanContext(span_context).span_context(), carrier);
+  } else if (format == http_headers) {
+    was_successful =
+        injectHttpHeaders(getSpanContext(span_context).span_context(), carrier);
+  } else {
+    auto exception = getUnsupportedFormatException();
+    if (exception == nullptr) {
+      return nullptr;
+    }
+    auto cleanup_exception = finally([exception] { Py_DECREF(exception); });
+    PyErr_Format(exception, "unsupported format %s", format.data());
+    return nullptr;
+  }
+  if (!was_successful) {
+    return nullptr;
+  }
+  Py_RETURN_NONE;
+}
+
+//--------------------------------------------------------------------------------------------------
+// injectBinary
+//--------------------------------------------------------------------------------------------------
+bool TracerBridge::injectBinary(const opentracing::SpanContext& span_context,
+                                PyObject* carrier) noexcept {
+  (void)span_context;
+  (void)carrier;
+  return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+// injectTextMap
+//--------------------------------------------------------------------------------------------------
+bool TracerBridge::injectTextMap(const opentracing::SpanContext& span_context, PyObject* carrier) noexcept {
+  (void)span_context;
+  (void)carrier;
+  return true;
+}
+
+bool TracerBridge::injectHttpHeaders(const opentracing::SpanContext& span_context, PyObject* carrier) noexcept {
+  (void)span_context;
+  (void)carrier;
+  return true;
 }
 }  // namespace python_bridge_tracer
