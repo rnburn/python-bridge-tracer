@@ -2,6 +2,7 @@
 
 #include "span.h"
 #include "span_context.h"
+#include "dict_writer.h"
 #include "utility.h"
 #include "opentracing_module.h"
 
@@ -322,15 +323,20 @@ bool TracerBridge::injectBinary(const opentracing::SpanContext& span_context,
 //--------------------------------------------------------------------------------------------------
 // injectTextMap
 //--------------------------------------------------------------------------------------------------
-bool TracerBridge::injectTextMap(const opentracing::SpanContext& span_context, PyObject* carrier) noexcept {
-  (void)span_context;
-  (void)carrier;
-  return true;
+bool TracerBridge::injectTextMap(const opentracing::SpanContext& span_context,
+                                 PyObject* carrier) noexcept {
+  DictWriter dict_writer{carrier};
+  return static_cast<bool>(tracer_->Inject(
+      span_context, static_cast<opentracing::TextMapWriter&>(dict_writer)));
 }
 
-bool TracerBridge::injectHttpHeaders(const opentracing::SpanContext& span_context, PyObject* carrier) noexcept {
-  (void)span_context;
-  (void)carrier;
-  return true;
+//--------------------------------------------------------------------------------------------------
+// injectHttpHeaders
+//--------------------------------------------------------------------------------------------------
+bool TracerBridge::injectHttpHeaders(
+    const opentracing::SpanContext& span_context, PyObject* carrier) noexcept {
+  DictWriter dict_writer{carrier};
+  return static_cast<bool>(tracer_->Inject(
+      span_context, static_cast<opentracing::HTTPHeadersWriter&>(dict_writer)));
 }
 }  // namespace python_bridge_tracer
