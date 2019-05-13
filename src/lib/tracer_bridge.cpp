@@ -1,10 +1,15 @@
 #include "tracer_bridge.h"
 
+#include <sstream>
+#include <exception>
+
 #include "span.h"
 #include "span_context.h"
 #include "dict_writer.h"
 #include "utility.h"
 #include "opentracing_module.h"
+#include "python_object_wrapper.h"
+#include "python_bridge_error.h"
 
 #include "python_bridge_tracer/module.h"
 
@@ -59,20 +64,17 @@ static bool addActiveSpanReference(
     PyObject* scope_manager,
     std::vector<std::pair<opentracing::SpanReferenceType, SpanContextBridge>>&
         cpp_references) noexcept {
-  auto active_scope = PyObject_GetAttrString(scope_manager, "active");
-  if (active_scope == nullptr) {
+  PythonObjectWrapper active_scope = PyObject_GetAttrString(scope_manager, "active");
+  if (!active_scope) {
     return false;
   }
-  auto cleanup_active_scope =
-      finally([active_scope] { Py_DECREF(active_scope); });
   if (active_scope == Py_None) {
     return true;
   }
-  auto active_span = PyObject_GetAttrString(active_scope, "span");
-  if (active_span == nullptr) {
+  PythonObjectWrapper active_span = PyObject_GetAttrString(active_scope, "span");
+  if (!active_span) {
     return false;
   }
-  auto cleanup_active_span = finally([active_span] { Py_DECREF(active_span); });
   if (!isSpan(active_span)) {
     PyErr_Format(
         PyExc_TypeError,
@@ -139,12 +141,10 @@ static bool addReference(
   if (!getReferenceType(reference_type, cpp_reference_type)) {
     return false;
   }
-  auto span_context = PyObject_GetAttrString(reference, "referenced_context");
-  if (span_context == nullptr) {
+  PythonObjectWrapper span_context = PyObject_GetAttrString(reference, "referenced_context");
+  if (!span_context) {
     return false;
   }
-  auto cleanup_span_context =
-      finally([span_context] { Py_DECREF(span_context); });
   if (!isSpanContext(span_context)) {
     PyErr_Format(PyExc_TypeError,
                  "unexpected type for referenced_context: "
@@ -215,6 +215,33 @@ static bool setTags(SpanBridge& span_bridge, PyObject* tags) noexcept {
     }
   }
   return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+// setPropagationError
+//--------------------------------------------------------------------------------------------------
+static void setPropagationError(std::error_code error_code) noexcept {
+  if (error_code == python_error) {
+    // error was already set
+    return;
+  }
+  // Note: Use string comparison for error category to work around issues
+  // described here with dynamically loaded tracers.
+  //
+  // https://github.com/envoyproxy/envoy/issues/5481#issuecomment-452229998
+  if (error_code.category().name() ==
+      opentracing::string_view{"OpenTracingPropagationError"}) {
+    if (error_code.value() ==
+        opentracing::span_context_corrupted_error.value()) {
+      PythonObjectWrapper exception = getSpanContextCorruptedException();
+      if (!exception) {
+        return;
+      }
+      PyErr_Format(exception, error_code.message().c_str());
+      return;
+    }
+  }
+  PyErr_Format(PyExc_RuntimeError, error_code.message().c_str());
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -290,17 +317,16 @@ PyObject* TracerBridge::inject(PyObject* args, PyObject* keywords) noexcept {
     was_successful =
         injectBinary(getSpanContext(span_context).span_context(), carrier);
   } else if (format == text_map) {
-    was_successful =
-        injectTextMap(getSpanContext(span_context).span_context(), carrier);
+    was_successful = inject<opentracing::TextMapWriter>(
+        getSpanContext(span_context).span_context(), carrier);
   } else if (format == http_headers) {
-    was_successful =
-        injectHttpHeaders(getSpanContext(span_context).span_context(), carrier);
+    was_successful = inject<opentracing::HTTPHeadersWriter>(
+        getSpanContext(span_context).span_context(), carrier);
   } else {
-    auto exception = getUnsupportedFormatException();
-    if (exception == nullptr) {
+    PythonObjectWrapper exception = getUnsupportedFormatException();
+    if (!exception) {
       return nullptr;
     }
-    auto cleanup_exception = finally([exception] { Py_DECREF(exception); });
     PyErr_Format(exception, "unsupported format %s", format.data());
     return nullptr;
   }
@@ -315,28 +341,30 @@ PyObject* TracerBridge::inject(PyObject* args, PyObject* keywords) noexcept {
 //--------------------------------------------------------------------------------------------------
 bool TracerBridge::injectBinary(const opentracing::SpanContext& span_context,
                                 PyObject* carrier) noexcept {
+#if 0
+  std::ostringstream oss;
+  if (!tracer->Inject(carrier, oss)) {
+    // TODO: make proper error
+    std::terminate();
+  }
+  auto s = oss.str();
+#endif
   (void)span_context;
   (void)carrier;
   return true;
 }
 
 //--------------------------------------------------------------------------------------------------
-// injectTextMap
+// inject
 //--------------------------------------------------------------------------------------------------
-bool TracerBridge::injectTextMap(const opentracing::SpanContext& span_context,
-                                 PyObject* carrier) noexcept {
+template <class Carrier>
+bool TracerBridge::inject(const opentracing::SpanContext& span_context, PyObject* carrier) noexcept {
   DictWriter dict_writer{carrier};
-  return static_cast<bool>(tracer_->Inject(
-      span_context, static_cast<opentracing::TextMapWriter&>(dict_writer)));
-}
-
-//--------------------------------------------------------------------------------------------------
-// injectHttpHeaders
-//--------------------------------------------------------------------------------------------------
-bool TracerBridge::injectHttpHeaders(
-    const opentracing::SpanContext& span_context, PyObject* carrier) noexcept {
-  DictWriter dict_writer{carrier};
-  return static_cast<bool>(tracer_->Inject(
-      span_context, static_cast<opentracing::HTTPHeadersWriter&>(dict_writer)));
+  auto result = tracer_->Inject(span_context, static_cast<Carrier&>(dict_writer));
+  if (!result) {
+    setPropagationError(result.error());
+    return false;
+  }
+  return true;
 }
 }  // namespace python_bridge_tracer

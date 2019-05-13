@@ -44,8 +44,7 @@ class TracerBridge {
 
    bool injectBinary(const opentracing::SpanContext& span_context, PyObject* carrier) noexcept;
 
-   bool injectTextMap(const opentracing::SpanContext& span_context, PyObject* carrier) noexcept;
-
-   bool injectHttpHeaders(const opentracing::SpanContext& span_context, PyObject* carrier) noexcept;
+   template <class Carrier>
+   bool inject(const opentracing::SpanContext& span_context, PyObject* carrier) noexcept;
 };
 } // namespace python_bridge_tracer
