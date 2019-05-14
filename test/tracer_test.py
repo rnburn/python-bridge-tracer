@@ -171,6 +171,15 @@ class TestTracer(unittest.TestCase):
         span_context = tracer.extract(opentracing.Format.TEXT_MAP, carrier)
         self.assertIsNotNone(span_context)
 
+    def test_propagation2(self):
+        tracer, traces_path = make_mock_tracer()
+        span1 = tracer.start_span('abc')
+        carrier = bytearray()
+        tracer.inject(span1.context, opentracing.Format.BINARY, carrier)
+        self.assertTrue(len(carrier) >= 1)
+        span_context = tracer.extract(opentracing.Format.BINARY, carrier)
+        self.assertIsNotNone(span_context)
+
     def test_propagation_error(self):
         tracer, traces_path = make_mock_tracer()
         carrier = {}
@@ -180,6 +189,8 @@ class TestTracer(unittest.TestCase):
             span_context = tracer.extract('no-such-format', carrier)
         with self.assertRaises(Exception):
             span_context = tracer.extract(opentracing.Format.TEXT_MAP, 'bad-carrier')
+        with self.assertRaises(opentracing.InvalidCarrierException):
+            span_context = tracer.extract(opentracing.Format.BINARY, {})
 
     def test_context(self):
         tracer, traces_path = make_mock_tracer()

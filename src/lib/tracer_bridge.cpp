@@ -405,25 +405,40 @@ TracerBridge::extract(PyObject* carrier) noexcept {
 //--------------------------------------------------------------------------------------------------
 bool TracerBridge::injectBinary(const opentracing::SpanContext& span_context,
                                 PyObject* carrier) noexcept {
-#if 0
+  if (PyByteArray_Check(carrier) != 1) {
+    PythonObjectWrapper exception = getInvalidCarrierException();
+    PyErr_Format(exception, "carrier must be a bytearray");
+    return false;
+  }
   std::ostringstream oss;
-  if (!tracer->Inject(carrier, oss)) {
-    // TODO: make proper error
-    std::terminate();
+  auto was_successful = tracer_->Inject(span_context, oss);
+  if (!was_successful) {
+    setPropagationError(was_successful.error());
+    return false;
   }
   auto s = oss.str();
-#endif
-  (void)span_context;
-  (void)carrier;
+  auto size = PyByteArray_Size(carrier);
+  if (PyByteArray_Resize(carrier, size + static_cast<Py_ssize_t>(s.size())) != 0) {
+    return false;
+  }
+  auto data = PyByteArray_AsString(carrier);
+  std::copy(s.begin(), s.end(), data + size);
   return true;
 }
 
 //--------------------------------------------------------------------------------------------------
 // extractBinary
 //--------------------------------------------------------------------------------------------------
-   opentracing::expected<std::unique_ptr<opentracing::SpanContext>>
- TracerBridge::extractBinary(PyObject* carrier) noexcept {
-  (void)carrier;
-  return std::unique_ptr<opentracing::SpanContext>{};
+opentracing::expected<std::unique_ptr<opentracing::SpanContext>>
+TracerBridge::extractBinary(PyObject* carrier) noexcept {
+  if (PyByteArray_Check(carrier) != 1) {
+    PythonObjectWrapper exception = getInvalidCarrierException();
+    PyErr_Format(exception, "carrier must be a bytearray");
+    return opentracing::make_unexpected(python_error);
+  }
+  auto data = PyByteArray_AsString(carrier);
+  auto size = PyByteArray_Size(carrier);
+  std::istringstream iss{std::string{data, static_cast<size_t>(size)}};
+  return tracer_->Extract(iss);
 }
 }  // namespace python_bridge_tracer
