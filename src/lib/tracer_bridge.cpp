@@ -10,6 +10,7 @@
 #include "utility.h"
 #include "opentracing_module.h"
 #include "python_object_wrapper.h"
+#include "python_string_wrapper.h"
 #include "python_bridge_error.h"
 
 #include "python_bridge_tracer/module.h"
@@ -101,25 +102,14 @@ static bool getReferenceType(
     PyErr_Format(PyExc_TypeError, "reference_type must be a string");
     return false;
   }
-  auto utf8 = PyUnicode_AsUTF8String(reference_type);
-  if (utf8 == nullptr) {
-    return false;
-  }
-  auto cleanup_utf8 = finally([utf8] { Py_DECREF(utf8); });
-  char* s;
-  Py_ssize_t length;
-  auto rcode = PyBytes_AsStringAndSize(utf8, &s, &length);
-  if (rcode == -1) {
-    return false;
-  }
-  auto string_view = opentracing::string_view{s, static_cast<size_t>(length)};
+  PythonStringWrapper reference_type_str{reference_type};
   static opentracing::string_view child_of{"child_of"};
   static opentracing::string_view follows_from{"follows_from"};
-  if (string_view == child_of) {
+  if (reference_type_str == child_of) {
     cpp_reference_type = opentracing::SpanReferenceType::ChildOfRef;
     return true;
   }
-  if (string_view == follows_from) {
+  if (reference_type_str == follows_from) {
     cpp_reference_type = opentracing::SpanReferenceType::FollowsFromRef;
     return true;
   }
