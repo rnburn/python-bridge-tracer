@@ -1,7 +1,7 @@
 #include "span_context_bridge.h"
 
+#include "python_object_wrapper.h"
 #include "utility.h"
-#include "python_unicode_object.h"
 
 namespace python_bridge_tracer {
 //--------------------------------------------------------------------------------------------------
@@ -30,33 +30,34 @@ const opentracing::SpanContext& SpanContextBridge::span_context() const
 // getBaggageAsPyDict
 //--------------------------------------------------------------------------------------------------
 PyObject* SpanContextBridge::getBaggageAsPyDict() const noexcept {
-  auto result = PyDict_New();
+  PythonObjectWrapper result = PyDict_New();
   if (result == nullptr) {
     return nullptr;
   }
   bool error = false;
   span_context().ForeachBaggageItem(
       [&](const std::string& key, const std::string& value) {
-        PythonUnicodeObject py_key{key.data(), key.size()};
-        if (py_key.object() == nullptr) {
+        PythonObjectWrapper py_key = PyUnicode_FromStringAndSize(
+            key.data(), static_cast<Py_ssize_t>(key.size()));
+        if (!py_key) {
           error = true;
           return false;
         }
-        PythonUnicodeObject py_value{value.data(), value.size()};
-        if (py_value.object() == nullptr) {
+        PythonObjectWrapper py_value = PyUnicode_FromStringAndSize(
+            value.data(), static_cast<Py_ssize_t>(value.size()));
+        if (!py_value) {
           error = true;
           return false;
         }
-        if (PyDict_SetItem(result, py_key.object(), py_value.object()) != 0) {
+        if (PyDict_SetItem(result, py_key, py_value) != 0) {
           error = true;
           return false;
         }
         return true;
       });
   if (error) {
-    Py_DECREF(result);
     return nullptr;
   }
-  return result;
+  return result.release();
 }
 }  // namespace python_bridge_tracer

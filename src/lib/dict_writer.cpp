@@ -1,6 +1,6 @@
 #include "dict_writer.h"
 
-#include "python_unicode_object.h"
+#include "python_object_wrapper.h"
 #include "python_bridge_error.h"
 
 namespace python_bridge_tracer {
@@ -15,15 +15,17 @@ DictWriter::DictWriter(PyObject* dict) noexcept : dict_{dict} {}
 opentracing::expected<void> DictWriter::Set(
        opentracing::string_view key,
        opentracing::string_view value) const {
-  PythonUnicodeObject py_key{key.data(), key.size()};
-  if (py_key.object() == nullptr) {
+  PythonObjectWrapper py_key =
+      PyUnicode_FromStringAndSize(key.data(), static_cast<Py_ssize_t>(key.size()));
+  if (!py_key) {
     return opentracing::make_unexpected(python_error);
   }
-  PythonUnicodeObject py_value{value.data(), value.size()};
-  if (py_value.object() == nullptr) {
+  PythonObjectWrapper py_value =
+      PyUnicode_FromStringAndSize(value.data(), static_cast<Py_ssize_t>(value.size()));
+  if (!py_value) {
     return opentracing::make_unexpected(python_error);
   }
-  if (PyDict_SetItem(dict_, py_key.object(), py_value.object()) != 0) {
+  if (PyDict_SetItem(dict_, py_key, py_value) != 0) {
     return opentracing::make_unexpected(python_error);
   }
   return {};

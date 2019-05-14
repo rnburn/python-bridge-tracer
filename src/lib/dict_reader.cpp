@@ -16,11 +16,12 @@ DictReader:: DictReader(PyObject* dict) noexcept
 //--------------------------------------------------------------------------------------------------
 opentracing::expected<opentracing::string_view> DictReader::LookupKey(
     opentracing::string_view key) const {
-  PythonUnicodeObject py_key{key.data(), key.size()};
-  if (py_key.object() == nullptr) {
+  PythonObjectWrapper py_key =
+      PyUnicode_FromStringAndSize(key.data(), static_cast<Py_ssize_t>(key.size()));
+  if (!py_key) {
     return opentracing::make_unexpected(python_error);
   }
-  auto value = PyDict_GetItem(dict_, py_key.object());
+  auto value = PyDict_GetItem(dict_, py_key);
   if (value == nullptr) {
     return opentracing::make_unexpected(opentracing::key_not_found_error);
   }

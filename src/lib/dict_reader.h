@@ -2,8 +2,6 @@
 
 #include <Python.h>
 
-#include "python_unicode_object.h"
-
 #include <opentracing/propagation.h>
 
 namespace python_bridge_tracer {
