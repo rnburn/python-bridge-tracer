@@ -12,7 +12,7 @@ class PythonBridgeErrorCategory final : public std::error_category {
    }
 
    std::error_condition default_error_condition(int code) const noexcept override {
-     return std::error_condition(code, *this);
+     return {code, *this};
    }
 
    std::string message(int code) const override {
