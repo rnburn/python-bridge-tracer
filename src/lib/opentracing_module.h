@@ -9,9 +9,18 @@ namespace python_bridge_tracer {
  */
 PyObject* getThreadLocalScopeManager() noexcept;
 
+/**
+ * @return the python object for opentracing.UnsupportedFormatException
+ */
 PyObject* getUnsupportedFormatException() noexcept;
 
+/**
+ * @return the python object for opentracing.InvalidCarrierException
+ */
 PyObject* getInvalidCarrierException() noexcept;
 
+/**
+ * @return the python object for opentracing.SpanContextCorruptedException
+ */
 PyObject* getSpanContextCorruptedException() noexcept;
 } // namespace python_bridge_tracer

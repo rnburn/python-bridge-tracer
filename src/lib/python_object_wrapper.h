@@ -3,6 +3,9 @@
 #include <Python.h>
 
 namespace python_bridge_tracer {
+/**
+ * Small RAII wrapper class for python objects.
+ */
 class PythonObjectWrapper {
  public:
    PythonObjectWrapper() noexcept = default;
@@ -19,6 +22,10 @@ class PythonObjectWrapper {
 
    PythonObjectWrapper& operator=(PythonObjectWrapper&& other) noexcept;
 
+   /**
+    * Return the wrapped PyObject* and don't decrement the reference count on destruction.
+    * @return teh wrapped PyObject*
+    */
    PyObject* release() noexcept;
 
    operator PyObject*() const noexcept { return object_; }

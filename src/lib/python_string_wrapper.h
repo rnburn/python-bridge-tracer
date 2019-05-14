@@ -6,6 +6,9 @@
 #include "opentracing/string_view.h"
 
 namespace python_bridge_tracer {
+/**
+ * Support accessing a python string object as a opentracing::string_view.
+ */
 class PythonStringWrapper {
  public:
   PythonStringWrapper() noexcept = default;
