@@ -171,6 +171,16 @@ class TestTracer(unittest.TestCase):
         span_context = tracer.extract(opentracing.Format.TEXT_MAP, carrier)
         self.assertIsNotNone(span_context)
 
+    def test_propagation_error(self):
+        tracer, traces_path = make_mock_tracer()
+        carrier = {}
+        with self.assertRaises(Exception):
+            span_context = tracer.inject('bad-span', opentracing.Format.TEXT_MAP, carrier)
+        with self.assertRaises(opentracing.UnsupportedFormatException):
+            span_context = tracer.extract('no-such-format', carrier)
+        with self.assertRaises(Exception):
+            span_context = tracer.extract(opentracing.Format.TEXT_MAP, 'bad-carrier')
+
     def test_context(self):
         tracer, traces_path = make_mock_tracer()
         span = tracer.start_span('abc')
