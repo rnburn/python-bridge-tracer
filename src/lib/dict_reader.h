@@ -2,6 +2,8 @@
 
 #include <Python.h>
 
+#include "python_string_wrapper.h"
+
 #include <opentracing/propagation.h>
 
 namespace python_bridge_tracer {
@@ -18,6 +20,6 @@ class DictReader final : public opentracing::HTTPHeadersReader {
 
  private:
   PyObject* dict_;
-  mutable std::string lookup_value_;
+  mutable PythonStringWrapper lookup_value_;
 };
 } // namespace python_bridge_tracer

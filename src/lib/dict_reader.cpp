@@ -29,7 +29,7 @@ opentracing::expected<opentracing::string_view> DictReader::LookupKey(
   if (!value_str) {
     return opentracing::make_unexpected(python_error);
   }
-  lookup_value_ = static_cast<opentracing::string_view>(value_str);
+  lookup_value_ = std::move(value_str);
   return opentracing::string_view{lookup_value_};
 }
 

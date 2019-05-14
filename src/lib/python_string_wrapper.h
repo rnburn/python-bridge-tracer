@@ -8,6 +8,8 @@
 namespace python_bridge_tracer {
 class PythonStringWrapper {
  public:
+  PythonStringWrapper() noexcept = default;
+
   PythonStringWrapper(PyObject* object) noexcept;
 
   operator bool() const noexcept { return data_ != nullptr; }
