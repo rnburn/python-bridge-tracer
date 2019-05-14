@@ -1,5 +1,6 @@
 #include "dict_reader.h"
 
+#include "python_object_wrapper.h"
 #include "python_string_wrapper.h"
 #include "python_bridge_error.h"
 
@@ -9,6 +10,27 @@ namespace python_bridge_tracer {
 //--------------------------------------------------------------------------------------------------
 DictReader:: DictReader(PyObject* dict) noexcept
   : dict_{dict} {}
+
+//--------------------------------------------------------------------------------------------------
+// LookupKey
+//--------------------------------------------------------------------------------------------------
+opentracing::expected<opentracing::string_view> DictReader::LookupKey(
+    opentracing::string_view key) const {
+  PythonUnicodeObject py_key{key.data(), key.size()};
+  if (py_key.object() == nullptr) {
+    return opentracing::make_unexpected(python_error);
+  }
+  auto value = PyDict_GetItem(dict_, py_key.object());
+  if (value == nullptr) {
+    return opentracing::make_unexpected(opentracing::key_not_found_error);
+  }
+  PythonStringWrapper value_str{value};
+  if (!value_str) {
+    return opentracing::make_unexpected(python_error);
+  }
+  lookup_value_ = static_cast<opentracing::string_view>(value_str);
+  return opentracing::string_view{lookup_value_};
+}
 
 //--------------------------------------------------------------------------------------------------
 // ForeachKey

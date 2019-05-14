@@ -6,12 +6,16 @@
 #include "span.h"
 #include "span_context.h"
 #include "dict_writer.h"
+#include "dict_reader.h"
 #include "utility.h"
 #include "opentracing_module.h"
 #include "python_object_wrapper.h"
 #include "python_bridge_error.h"
 
 #include "python_bridge_tracer/module.h"
+
+static opentracing::string_view BinaryFormat{"binary"}, TextMapFormat{"text_map"},
+      HttpHeadersFormat{"http_headers"};
 
 namespace python_bridge_tracer {
 //--------------------------------------------------------------------------------------------------
@@ -310,16 +314,14 @@ PyObject* TracerBridge::inject(PyObject* args, PyObject* keywords) noexcept {
     return nullptr;
   }
   opentracing::string_view format{format_data, static_cast<size_t>(format_length)};
-  static opentracing::string_view binary{"binary"}, text_map{"text_map"},
-      http_headers{"http_headers"};
   bool was_successful = false;
-  if (format == binary) {
+  if (format == BinaryFormat) {
     was_successful =
         injectBinary(getSpanContext(span_context).span_context(), carrier);
-  } else if (format == text_map) {
+  } else if (format == TextMapFormat) {
     was_successful = inject<opentracing::TextMapWriter>(
         getSpanContext(span_context).span_context(), carrier);
-  } else if (format == http_headers) {
+  } else if (format == HttpHeadersFormat) {
     was_successful = inject<opentracing::HTTPHeadersWriter>(
         getSpanContext(span_context).span_context(), carrier);
   } else {
@@ -334,6 +336,68 @@ PyObject* TracerBridge::inject(PyObject* args, PyObject* keywords) noexcept {
     return nullptr;
   }
   Py_RETURN_NONE;
+}
+
+template <class Carrier>
+bool TracerBridge::inject(const opentracing::SpanContext& span_context, PyObject* carrier) noexcept {
+  DictWriter dict_writer{carrier};
+  auto result = tracer_->Inject(span_context, static_cast<Carrier&>(dict_writer));
+  if (!result) {
+    setPropagationError(result.error());
+    return false;
+  }
+  return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+// extract
+//--------------------------------------------------------------------------------------------------
+PyObject* TracerBridge::extract(PyObject* args, PyObject* keywords) noexcept {
+  static char* keyword_names[] = {const_cast<char*>("format"),
+                                  const_cast<char*>("carrier"), nullptr};
+  const char* format_data = nullptr;
+  int format_length = 0;
+  PyObject* carrier = nullptr;
+  if (PyArg_ParseTupleAndKeywords(args, keywords, "s#O:inject", keyword_names,
+                                  &format_data, &format_length,
+                                  &carrier) == 0) {
+    return nullptr;
+  }
+  opentracing::string_view format{format_data,
+                                  static_cast<size_t>(format_length)};
+  opentracing::expected<std::unique_ptr<opentracing::SpanContext>> span_context_maybe;
+  if (format == BinaryFormat) {
+    span_context_maybe = extractBinary(carrier);
+  } else if (format == TextMapFormat) {
+    span_context_maybe = extract<opentracing::TextMapReader>(carrier);
+  } else if (format == HttpHeadersFormat) {
+    span_context_maybe = extract<opentracing::HTTPHeadersReader>(carrier);
+  } else {
+    PythonObjectWrapper exception = getUnsupportedFormatException();
+    if (!exception) {
+      return nullptr;
+    }
+    PyErr_Format(exception, "unsupported format %s", format.data());
+    return nullptr;
+  }
+  if (!span_context_maybe) {
+    setPropagationError(span_context_maybe.error());
+    return nullptr;
+  }
+  std::unique_ptr<opentracing::SpanContext> span_context{std::move(*span_context_maybe)};
+  if (span_context == nullptr) {
+    Py_RETURN_NONE;
+  }
+  std::unique_ptr<SpanContextBridge> span_context_bridge{
+      new SpanContextBridge{std::move(span_context)}};
+  return makeSpanContext(std::move(span_context_bridge));
+}
+
+template <class Carrier>
+opentracing::expected<std::unique_ptr<opentracing::SpanContext>>
+TracerBridge::extract(PyObject* carrier) noexcept {
+  DictReader dict_reader{carrier};
+  return tracer_->Extract(static_cast<Carrier&>(dict_reader));
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -355,16 +419,11 @@ bool TracerBridge::injectBinary(const opentracing::SpanContext& span_context,
 }
 
 //--------------------------------------------------------------------------------------------------
-// inject
+// extractBinary
 //--------------------------------------------------------------------------------------------------
-template <class Carrier>
-bool TracerBridge::inject(const opentracing::SpanContext& span_context, PyObject* carrier) noexcept {
-  DictWriter dict_writer{carrier};
-  auto result = tracer_->Inject(span_context, static_cast<Carrier&>(dict_writer));
-  if (!result) {
-    setPropagationError(result.error());
-    return false;
-  }
-  return true;
+   opentracing::expected<std::unique_ptr<opentracing::SpanContext>>
+ TracerBridge::extractBinary(PyObject* carrier) noexcept {
+  (void)carrier;
+  return std::unique_ptr<opentracing::SpanContext>{};
 }
 }  // namespace python_bridge_tracer

@@ -39,6 +39,8 @@ class TracerBridge {
 
    PyObject* inject(PyObject* args, PyObject* keywords) noexcept;
 
+   PyObject* extract(PyObject* args, PyObject* keywords) noexcept;
+
   private:
    std::shared_ptr<opentracing::Tracer> tracer_;
 
@@ -46,5 +48,12 @@ class TracerBridge {
 
    template <class Carrier>
    bool inject(const opentracing::SpanContext& span_context, PyObject* carrier) noexcept;
+
+   opentracing::expected<std::unique_ptr<opentracing::SpanContext>>
+   extractBinary(PyObject* carrier) noexcept;
+
+   template <class Carrier>
+   opentracing::expected<std::unique_ptr<opentracing::SpanContext>> extract(
+       PyObject* carrier) noexcept;
 };
 } // namespace python_bridge_tracer

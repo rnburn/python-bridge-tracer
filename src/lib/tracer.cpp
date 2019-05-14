@@ -158,11 +158,7 @@ static PyObject* inject(TracerObject* self, PyObject* args, PyObject* keywords) 
 // extract
 //--------------------------------------------------------------------------------------------------
 static PyObject* extract(TracerObject* self, PyObject* args, PyObject* keywords) noexcept {
-  // TODO(rnburn): fill in
-  (void)self;
-  (void)args;
-  (void)keywords;
-  Py_RETURN_NONE;
+  return self->tracer_bridge->extract(args, keywords);
 }
 
 //--------------------------------------------------------------------------------------------------

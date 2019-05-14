@@ -13,7 +13,7 @@ SpanContextBridge::SpanContextBridge(
 
 SpanContextBridge::SpanContextBridge(
     std::unique_ptr<const opentracing::SpanContext>&& span_context) noexcept
-    : span_context_{std::move(span_context)} {}
+    : span_context_{span_context.release()} {}
 
 //--------------------------------------------------------------------------------------------------
 // span_context

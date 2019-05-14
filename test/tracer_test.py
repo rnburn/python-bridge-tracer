@@ -162,6 +162,15 @@ class TestTracer(unittest.TestCase):
         spans = read_spans(traces_path)
         self.assertEqual(len(spans), 2)
 
+    def test_propagation1(self):
+        tracer, traces_path = make_mock_tracer()
+        span1 = tracer.start_span('abc')
+        carrier = {}
+        tracer.inject(span1.context, opentracing.Format.TEXT_MAP, carrier)
+        self.assertTrue(len(carrier) >= 1)
+        span_context = tracer.extract(opentracing.Format.TEXT_MAP, carrier)
+        self.assertIsNotNone(span_context)
+
     def test_context(self):
         tracer, traces_path = make_mock_tracer()
         span = tracer.start_span('abc')

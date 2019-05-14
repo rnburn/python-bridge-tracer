@@ -2,6 +2,8 @@
 
 #include <Python.h>
 
+#include "python_unicode_object.h"
+
 #include <opentracing/propagation.h>
 
 namespace python_bridge_tracer {
@@ -12,9 +14,12 @@ class DictReader final : public opentracing::HTTPHeadersReader {
 
   explicit DictReader(PyObject* dict) noexcept;
 
+  opentracing::expected<opentracing::string_view> LookupKey(opentracing::string_view key) const override;
+
   opentracing::expected<void> ForeachKey(Callback callback) const override;
 
  private:
   PyObject* dict_;
+  mutable std::string lookup_value_;
 };
 } // namespace python_bridge_tracer
