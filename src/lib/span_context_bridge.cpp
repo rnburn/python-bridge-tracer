@@ -31,7 +31,7 @@ const opentracing::SpanContext& SpanContextBridge::span_context() const
 //--------------------------------------------------------------------------------------------------
 PyObject* SpanContextBridge::getBaggageAsPyDict() const noexcept {
   PythonObjectWrapper result = PyDict_New();
-  if (result == nullptr) {
+  if (result.error()) {
     return nullptr;
   }
   bool error = false;
@@ -39,13 +39,13 @@ PyObject* SpanContextBridge::getBaggageAsPyDict() const noexcept {
       [&](const std::string& key, const std::string& value) {
         PythonObjectWrapper py_key = PyUnicode_FromStringAndSize(
             key.data(), static_cast<Py_ssize_t>(key.size()));
-        if (!py_key) {
+        if (py_key.error()) {
           error = true;
           return false;
         }
         PythonObjectWrapper py_value = PyUnicode_FromStringAndSize(
             value.data(), static_cast<Py_ssize_t>(value.size()));
-        if (!py_value) {
+        if (py_value.error()) {
           error = true;
           return false;
         }

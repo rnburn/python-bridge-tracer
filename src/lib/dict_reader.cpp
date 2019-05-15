@@ -18,7 +18,7 @@ opentracing::expected<opentracing::string_view> DictReader::LookupKey(
     opentracing::string_view key) const {
   PythonObjectWrapper py_key =
       PyUnicode_FromStringAndSize(key.data(), static_cast<Py_ssize_t>(key.size()));
-  if (!py_key) {
+  if (py_key.error()) {
     return opentracing::make_unexpected(python_error);
   }
   auto value = PyDict_GetItem(dict_, py_key);
@@ -26,7 +26,7 @@ opentracing::expected<opentracing::string_view> DictReader::LookupKey(
     return opentracing::make_unexpected(opentracing::key_not_found_error);
   }
   PythonStringWrapper value_str{value};
-  if (!value_str) {
+  if (value_str.error()) {
     return opentracing::make_unexpected(python_error);
   }
   lookup_value_ = std::move(value_str);
@@ -42,11 +42,11 @@ opentracing::expected<void> DictReader::ForeachKey(Callback callback) const {
   Py_ssize_t position = 0;
   while (PyDict_Next(dict_, &position, &key, &value) == 1) {
     PythonStringWrapper key_str{key};
-    if (!key_str) {
+    if (key_str.error()) {
       return opentracing::make_unexpected(python_error);
     }
     PythonStringWrapper value_str{value};
-    if (!value_str) {
+    if (value_str.error()) {
       return opentracing::make_unexpected(python_error);
     }
     auto was_successful = callback(key_str, value_str);

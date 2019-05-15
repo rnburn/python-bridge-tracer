@@ -54,6 +54,30 @@ class SpanBridge {
    bool setTag(PyObject* args, PyObject* keywords) noexcept;
 
    /**
+    * Log key-values.
+    * @param args python function arguments
+    * @param keywrods python function keywords
+    * @return true on success
+    */
+   bool logKeyValues(PyObject* args, PyObject* keywords) noexcept;
+
+   /**
+    * Alternative deprecated version of log.
+    * @param args python function arguments
+    * @param keywrods python function keywords
+    * @return true on success
+    */
+   bool logEvent(PyObject* args, PyObject* keywords) noexcept;
+
+   /**
+    * Alternative deprecated version of log.
+    * @param args python function arguments
+    * @param keywrods python function keywords
+    * @return true on success
+    */
+   bool log(PyObject* args, PyObject* keywords) noexcept;
+
+   /**
     * Set a baggage item on the span.
     * @param args python function arguments
     * @param keywrods python function keywords
@@ -86,5 +110,9 @@ class SpanBridge {
  private:
   std::shared_ptr<opentracing::Span> span_;
   opentracing::FinishSpanOptions finish_span_options_;
+
+  bool logKeyValues(
+      std::initializer_list<std::pair<const char*, PyObject*>> key_values,
+      double py_timestamp = 0) noexcept;
 };
 } // namespace python_bridge_tracer
