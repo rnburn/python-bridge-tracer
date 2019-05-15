@@ -1,6 +1,8 @@
 #include "span_bridge.h"
 
 #include "utility.h"
+#include "to_string.h"
+#include "python_string_wrapper.h"
 
 namespace python_bridge_tracer {
 //--------------------------------------------------------------------------------------------------
@@ -22,6 +24,16 @@ static bool setStringTag(opentracing::Span& span, opentracing::string_view key,
   }
   span.SetTag(key, s);
   return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+// getTimestamp
+//--------------------------------------------------------------------------------------------------
+static std::chrono::system_clock::time_point getTimestamp(double py_timestamp) {
+  if (py_timestamp != 0) {
+    return toTimestamp(py_timestamp);
+  }
+  return std::chrono::system_clock::now();
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -88,20 +100,108 @@ bool SpanBridge::setTagKeyValue(PyObject* key, PyObject* value) noexcept {
     PyErr_Format(PyExc_TypeError, "tag key must be a string");
     return false;
   }
-  auto utf8 = PyUnicode_AsUTF8String(key);
-  if (utf8 == nullptr) {
+  PythonStringWrapper key_str{key};
+  if (key_str.error()) {
     return false;
   }
-  auto cleanup_utf8 = finally([utf8] {
-      Py_DECREF(utf8);
-  });
-  char* key_data;
-  Py_ssize_t key_length;
-  auto rcode = PyBytes_AsStringAndSize(utf8, &key_data, &key_length);
-  if (rcode == -1) {
+  return setTagKeyValue(static_cast<opentracing::string_view>(key_str), value);
+}
+
+//--------------------------------------------------------------------------------------------------
+// logKeyValues
+//--------------------------------------------------------------------------------------------------
+bool SpanBridge::logKeyValues(PyObject* args, PyObject* keywords) noexcept {
+  static char* keyword_names[] = {const_cast<char*>("key_values"),
+                                  const_cast<char*>("timestamp"), nullptr};
+  PyObject* key_values = nullptr;
+  double timestamp = 0;
+  if (PyArg_ParseTupleAndKeywords(args, keywords, "O|d:log_kv",
+                                  keyword_names, &key_values, &timestamp) == 0) {
     return false;
   }
-  return setTagKeyValue(opentracing::string_view{key_data, static_cast<size_t>(key_length)}, value);
+  if (PyDict_Check(key_values) == 0) {
+    PyErr_Format(PyExc_TypeError, "key_values must be a dict");
+    return false;
+  }
+  opentracing::LogRecord log_record;
+  log_record.timestamp = getTimestamp(timestamp);
+  log_record.fields.reserve(static_cast<size_t>(PyDict_Size(key_values)));
+  PyObject* key;
+  PyObject* value;
+  Py_ssize_t position = 0;
+  while (PyDict_Next(key_values, &position, &key, &value) == 1) {
+    PythonStringWrapper key_str{key};
+    if (key_str.error()) {
+      return false;
+    }
+    std::string value_str;
+    if (!toString(value, value_str)) {
+      return false;
+    }
+    log_record.fields.emplace_back(
+        std::string{static_cast<opentracing::string_view>(key_str)},
+        opentracing::Value{std::move(value_str)});
+  }
+  finish_span_options_.log_records.emplace_back(std::move(log_record));
+  return true;
+}
+
+bool SpanBridge::logKeyValues(
+    std::initializer_list<std::pair<const char*, PyObject*>> key_values,
+    double py_timestamp) noexcept {
+  opentracing::LogRecord log_record;
+  log_record.timestamp = getTimestamp(py_timestamp);
+  log_record.fields.reserve(static_cast<size_t>(key_values.size()));
+  for (auto& key_value : key_values) {
+    if (key_value.second == nullptr) {
+      continue;
+    }
+    PythonStringWrapper value_str{key_value.second};
+    if (value_str.error()) {
+      return false;
+    }
+    log_record.fields.emplace_back(
+        key_value.first,
+        opentracing::Value{
+            std::string{static_cast<opentracing::string_view>(value_str)}});
+  }
+  finish_span_options_.log_records.emplace_back(std::move(log_record));
+  return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+// logEvent
+//--------------------------------------------------------------------------------------------------
+bool SpanBridge::logEvent(PyObject* args, PyObject* keywords) noexcept {
+  static char* keyword_names[] = {const_cast<char*>("event"),
+                                  const_cast<char*>("payload"), nullptr};
+  PyObject* event = nullptr;
+  PyObject* payload = nullptr;
+  if (PyArg_ParseTupleAndKeywords(args, keywords, "O|O:log_event",
+                                  keyword_names, &event, &payload) == 0) {
+    return false;
+  }
+  if (payload == nullptr) {
+    return logKeyValues({{"event", event}});
+  }
+  return logKeyValues({{"event", event}, {"payload", payload}});
+}
+
+//--------------------------------------------------------------------------------------------------
+// log
+//--------------------------------------------------------------------------------------------------
+bool SpanBridge::log(PyObject* args, PyObject* keywords) noexcept {
+  static char* keyword_names[] = {const_cast<char*>("event"),
+                                  const_cast<char*>("payload"),
+                                  const_cast<char*>("timestamp"), nullptr};
+  PyObject* event = nullptr;
+  PyObject* payload = nullptr;
+  double timestamp = 0;
+  if (PyArg_ParseTupleAndKeywords(args, keywords, "|OOd:log", keyword_names,
+                                  &event, &payload, &timestamp) == 0) {
+    return false;
+  }
+  return logKeyValues({{"event", event}, {"payload", payload}}, timestamp);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -177,13 +277,9 @@ PyObject* SpanBridge::finish(PyObject* args, PyObject* keywords) noexcept {
     return nullptr;
   }
   if (finish_time != 0) {
-    auto time_since_epoch = std::chrono::nanoseconds{static_cast<uint64_t>(1e9*finish_time)};
-    auto system_timestamp = std::chrono::system_clock::time_point{
-        std::chrono::duration_cast<std::chrono::system_clock::duration>(
-            time_since_epoch)};
     finish_span_options_.finish_steady_timestamp =
         opentracing::convert_time_point<std::chrono::steady_clock>(
-            system_timestamp);
+            toTimestamp(finish_time));
   }
   span_->FinishWithOptions(finish_span_options_);
   Py_RETURN_NONE;

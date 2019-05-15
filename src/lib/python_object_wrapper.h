@@ -30,7 +30,10 @@ class PythonObjectWrapper {
 
    operator PyObject*() const noexcept { return object_; }
 
-   operator bool() const noexcept { return object_ != nullptr; }
+   /**
+    * @return true if an error occurred.
+    */
+   bool error() const noexcept { return object_ == nullptr; }
  private:
   PyObject* object_{nullptr};
 };

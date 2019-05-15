@@ -2,6 +2,7 @@
 
 #include <Python.h>
 
+#include <chrono>
 #include <utility>
 #include <type_traits>
 
@@ -77,4 +78,9 @@ template <class F>
 FinalAction<F> finally(F&& f) noexcept {
   return FinalAction<F>(std::forward<F>(f));
 }
-} // namespace python_bridge_tracer
+
+PyObject* getModuleAttribute(const char* module_name,
+                             const char* attribute) noexcept;
+
+std::chrono::system_clock::time_point toTimestamp(double py_timestamp) noexcept;
+}  // namespace python_bridge_tracer

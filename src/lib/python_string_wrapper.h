@@ -15,7 +15,10 @@ class PythonStringWrapper {
 
   PythonStringWrapper(PyObject* object) noexcept;
 
-  operator bool() const noexcept { return data_ != nullptr; }
+   /**
+    * @return true if an error occurred.
+    */
+  bool error() const noexcept { return data_ == nullptr; }
 
   operator opentracing::string_view() const noexcept;
 

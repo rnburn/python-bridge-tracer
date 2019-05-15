@@ -7,7 +7,7 @@ namespace python_bridge_tracer {
 PythonStringWrapper::PythonStringWrapper(PyObject* object) noexcept 
   : utf8_{PyUnicode_AsUTF8String(object)}
 {
-  if (!utf8_) {
+  if (utf8_.error()) {
     return;
   }
   if (PyBytes_AsStringAndSize(utf8_, &data_, &length_) == -1) {

@@ -70,14 +70,14 @@ static bool addActiveSpanReference(
     std::vector<std::pair<opentracing::SpanReferenceType, SpanContextBridge>>&
         cpp_references) noexcept {
   PythonObjectWrapper active_scope = PyObject_GetAttrString(scope_manager, "active");
-  if (!active_scope) {
+  if (active_scope.error()) {
     return false;
   }
   if (active_scope == Py_None) {
     return true;
   }
   PythonObjectWrapper active_span = PyObject_GetAttrString(active_scope, "span");
-  if (!active_span) {
+  if (active_span.error()) {
     return false;
   }
   if (!isSpan(active_span)) {
@@ -103,6 +103,9 @@ static bool getReferenceType(
     return false;
   }
   PythonStringWrapper reference_type_str{reference_type};
+  if (reference_type_str.error()) {
+    return false;
+  }
   static opentracing::string_view child_of{"child_of"};
   static opentracing::string_view follows_from{"follows_from"};
   if (reference_type_str == child_of) {
@@ -136,7 +139,7 @@ static bool addReference(
     return false;
   }
   PythonObjectWrapper span_context = PyObject_GetAttrString(reference, "referenced_context");
-  if (!span_context) {
+  if (span_context.error()) {
     return false;
   }
   if (!isSpanContext(span_context)) {
@@ -228,7 +231,7 @@ static void setPropagationError(std::error_code error_code) noexcept {
     if (error_code.value() ==
         opentracing::span_context_corrupted_error.value()) {
       PythonObjectWrapper exception = getSpanContextCorruptedException();
-      if (!exception) {
+      if (exception.error()) {
         return;
       }
       PyErr_Format(exception, error_code.message().c_str());
@@ -264,11 +267,7 @@ std::unique_ptr<SpanBridge> TracerBridge::makeSpan(
                                     &reference.second.span_context());
   }
   if (start_time != 0) {
-    auto time_since_epoch =
-        std::chrono::nanoseconds{static_cast<uint64_t>(1e9 * start_time)};
-    options.start_system_timestamp = std::chrono::system_clock::time_point{
-        std::chrono::duration_cast<std::chrono::system_clock::duration>(
-            time_since_epoch)};
+    options.start_system_timestamp = toTimestamp(start_time);
   }
 
   auto span = tracer_->StartSpanWithOptions(operation_name, options);
@@ -316,7 +315,7 @@ PyObject* TracerBridge::inject(PyObject* args, PyObject* keywords) noexcept {
         getSpanContext(span_context).span_context(), carrier);
   } else {
     PythonObjectWrapper exception = getUnsupportedFormatException();
-    if (!exception) {
+    if (exception.error()) {
       return nullptr;
     }
     PyErr_Format(exception, "unsupported format %s", format.data());
@@ -364,7 +363,7 @@ PyObject* TracerBridge::extract(PyObject* args, PyObject* keywords) noexcept {
     span_context_maybe = extract<opentracing::HTTPHeadersReader>(carrier);
   } else {
     PythonObjectWrapper exception = getUnsupportedFormatException();
-    if (!exception) {
+    if (exception.error()) {
       return nullptr;
     }
     PyErr_Format(exception, "unsupported format %s", format.data());
@@ -397,6 +396,9 @@ bool TracerBridge::injectBinary(const opentracing::SpanContext& span_context,
                                 PyObject* carrier) noexcept {
   if (PyByteArray_Check(carrier) != 1) {
     PythonObjectWrapper exception = getInvalidCarrierException();
+    if (exception.error()) {
+      return false;
+    }
     PyErr_Format(exception, "carrier must be a bytearray");
     return false;
   }
@@ -423,6 +425,9 @@ opentracing::expected<std::unique_ptr<opentracing::SpanContext>>
 TracerBridge::extractBinary(PyObject* carrier) noexcept {
   if (PyByteArray_Check(carrier) != 1) {
     PythonObjectWrapper exception = getInvalidCarrierException();
+    if (exception.error()) {
+      return opentracing::make_unexpected(python_error);
+    }
     PyErr_Format(exception, "carrier must be a bytearray");
     return opentracing::make_unexpected(python_error);
   }

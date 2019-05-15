@@ -59,13 +59,13 @@ static SpanObject* setTag(SpanObject* self, PyObject* args,
 //--------------------------------------------------------------------------------------------------
 // logKeyValues
 //--------------------------------------------------------------------------------------------------
-static PyObject* logKeyValues(SpanObject* self, PyObject* args,
+static SpanObject* logKeyValues(SpanObject* self, PyObject* args,
                               PyObject* keywords) noexcept {
-  // TODO(rnburn): fill in
-  (void)self;
-  (void)args;
-  (void)keywords;
-  Py_RETURN_NONE;
+  if (!self->span_bridge->logKeyValues(args, keywords)) {
+    return nullptr;
+  }
+  Py_INCREF(reinterpret_cast<PyObject*>(self));
+  return self;
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -91,25 +91,25 @@ static PyObject* getBaggageItem(SpanObject* self, PyObject* args,
 //--------------------------------------------------------------------------------------------------
 // logEvent
 //--------------------------------------------------------------------------------------------------
-static PyObject* logEvent(SpanObject* self, PyObject* args,
+static SpanObject* logEvent(SpanObject* self, PyObject* args,
                           PyObject* keywords) noexcept {
-  // TODO(rnburn): fill in
-  (void)self;
-  (void)args;
-  (void)keywords;
-  Py_RETURN_NONE;
+  if (!self->span_bridge->logEvent(args, keywords)) {
+    return nullptr;
+  }
+  Py_INCREF(reinterpret_cast<PyObject*>(self));
+  return self;
 }
 
 //--------------------------------------------------------------------------------------------------
 // log
 //--------------------------------------------------------------------------------------------------
-static PyObject* log(SpanObject* self, PyObject* args,
+static SpanObject* log(SpanObject* self, PyObject* args,
                      PyObject* keywords) noexcept {
-  // TODO(rnburn): fill in
-  (void)self;
-  (void)args;
-  (void)keywords;
-  Py_RETURN_NONE;
+  if (!self->span_bridge->log(args, keywords)) {
+    return nullptr;
+  }
+  Py_INCREF(reinterpret_cast<PyObject*>(self));
+  return self;
 }
 
 //--------------------------------------------------------------------------------------------------

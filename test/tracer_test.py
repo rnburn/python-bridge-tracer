@@ -143,6 +143,57 @@ class TestTracer(unittest.TestCase):
         self.assertEqual(len(spans), 1)
         self.assertEqual(spans[0]['tags']['a'], 1)
 
+    def test_log1(self):
+        tracer, traces_path = make_mock_tracer()
+        span = tracer.start_span('abc')
+        span.log_kv({
+            'cat': 'fluffy',
+            'abc': 123
+        })
+        span.finish()
+        tracer.close()
+        spans = read_spans(traces_path)
+        self.assertEqual(len(spans), 1)
+        self.assertEqual(len(spans[0]['logs']), 1)
+        fields = spans[0]['logs'][0]['fields']
+        self.assertEqual(len(fields), 2)
+        cat_field = [field for field in fields if field['key'] == 'cat']
+        self.assertDictEqual(cat_field[0], {'key':'cat', 'value': 'fluffy'})
+        abc_field = [field for field in fields if field['key'] == 'abc']
+        self.assertDictEqual(abc_field[0], {'key':'abc', 'value': '123'})
+
+    def test_log2(self):
+        tracer, traces_path = make_mock_tracer()
+        span = tracer.start_span('abc')
+        span.log_event('rocket', payload='Boom')
+        span.finish()
+        tracer.close()
+        spans = read_spans(traces_path)
+        self.assertEqual(len(spans), 1)
+        self.assertEqual(len(spans[0]['logs']), 1)
+        fields = spans[0]['logs'][0]['fields']
+        self.assertEqual(len(fields), 2)
+        event_field = [field for field in fields if field['key'] == 'event']
+        self.assertDictEqual(event_field[0], {'key':'event', 'value': 'rocket'})
+        payload_field = [field for field in fields if field['key'] == 'payload']
+        self.assertDictEqual(payload_field[0], {'key':'payload', 'value': 'Boom'})
+
+    def test_log3(self):
+        tracer, traces_path = make_mock_tracer()
+        span = tracer.start_span('abc')
+        span.log(event='rocket', payload='Boom')
+        span.finish()
+        tracer.close()
+        spans = read_spans(traces_path)
+        self.assertEqual(len(spans), 1)
+        self.assertEqual(len(spans[0]['logs']), 1)
+        fields = spans[0]['logs'][0]['fields']
+        self.assertEqual(len(fields), 2)
+        event_field = [field for field in fields if field['key'] == 'event']
+        self.assertDictEqual(event_field[0], {'key':'event', 'value': 'rocket'})
+        payload_field = [field for field in fields if field['key'] == 'payload']
+        self.assertDictEqual(payload_field[0], {'key':'payload', 'value': 'Boom'})
+
     def test_baggage1(self):
         tracer, traces_path = make_mock_tracer()
         span = tracer.start_span('abc', tags={'a':1})
