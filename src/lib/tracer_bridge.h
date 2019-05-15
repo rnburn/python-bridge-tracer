@@ -21,7 +21,6 @@ class TracerBridge {
 
    /**
     * Create a new span.
-    *
     * @param operation_name the operation name for the span.
     * @param scope_manager the python scope manager object
     * @param parent an optional parent for the span
@@ -37,7 +36,35 @@ class TracerBridge {
                                         PyObject* tags, double start_time,
                                         bool ignore_active_span) noexcept;
 
+   /**
+    * Inject span context into a carrier.
+    * @param args python function arguments
+    * @param keywrods python function keywords
+    * @return Py_None on success
+    */
+   PyObject* inject(PyObject* args, PyObject* keywords) noexcept;
+
+   /**
+    * Extract span context from a carrier.
+    * @param args python function arguments
+    * @param keywrods python function keywords
+    * @return the extracted span context or Py_None
+    */
+   PyObject* extract(PyObject* args, PyObject* keywords) noexcept;
+
   private:
    std::shared_ptr<opentracing::Tracer> tracer_;
+
+   bool injectBinary(const opentracing::SpanContext& span_context, PyObject* carrier) noexcept;
+
+   template <class Carrier>
+   bool inject(const opentracing::SpanContext& span_context, PyObject* carrier) noexcept;
+
+   opentracing::expected<std::unique_ptr<opentracing::SpanContext>>
+   extractBinary(PyObject* carrier) noexcept;
+
+   template <class Carrier>
+   opentracing::expected<std::unique_ptr<opentracing::SpanContext>> extract(
+       PyObject* carrier) noexcept;
 };
 } // namespace python_bridge_tracer

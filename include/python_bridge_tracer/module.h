@@ -17,12 +17,6 @@ namespace python_bridge_tracer {
 PyObject* makeTracer(std::shared_ptr<opentracing::Tracer> tracer, PyObject* scope_manager) noexcept;
 
 /**
- * Lookup the thread local scope manager from the python OpenTracing module.
- * @return the scope manager object
- */
-PyObject* getThreadLocalScopeManager() noexcept;
-
-/**
  * Setup the OpenTracing python classes.
  * @param module the module to add the classes to
  * @return true if successful

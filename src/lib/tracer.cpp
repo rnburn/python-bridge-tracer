@@ -5,6 +5,7 @@
 
 #include "python_bridge_tracer/module.h"
 
+#include "opentracing_module.h"
 #include "tracer_bridge.h"
 #include "span.h"
 #include "utility.h"
@@ -150,22 +151,14 @@ static PyObject* startSpan(TracerObject* self, PyObject* args, PyObject* keyword
 // inject
 //--------------------------------------------------------------------------------------------------
 static PyObject* inject(TracerObject* self, PyObject* args, PyObject* keywords) noexcept {
-  // TODO(rnburn): fill in
-  (void)self;
-  (void)args;
-  (void)keywords;
-  Py_RETURN_NONE;
+  return self->tracer_bridge->inject(args, keywords);
 }
 
 //--------------------------------------------------------------------------------------------------
 // extract
 //--------------------------------------------------------------------------------------------------
 static PyObject* extract(TracerObject* self, PyObject* args, PyObject* keywords) noexcept {
-  // TODO(rnburn): fill in
-  (void)self;
-  (void)args;
-  (void)keywords;
-  Py_RETURN_NONE;
+  return self->tracer_bridge->extract(args, keywords);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -255,8 +248,15 @@ PyObject* makeTracer(std::shared_ptr<opentracing::Tracer> tracer,
   if (result == nullptr) {
     return nullptr;
   }
+  if (scope_manager == nullptr) {
+    scope_manager = getThreadLocalScopeManager();
+    if (scope_manager == nullptr) {
+      return nullptr;
+    }
+  } else {
+    Py_INCREF(scope_manager);
+  }
   result->tracer_bridge = tracer_bridge.release();
-  Py_INCREF(scope_manager);
   result->scope_manager = scope_manager;
   return reinterpret_cast<PyObject*>(result);
 } catch (const std::exception& e) {
