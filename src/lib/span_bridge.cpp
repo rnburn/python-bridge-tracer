@@ -310,10 +310,10 @@ PyObject* SpanBridge::exit(PyObject* args) noexcept {
       return nullptr;
     }
     span_->Log({{"event", "error"},
-                {"message", exc_value_str},
-                {"error.object", exc_value_str},
-                {"error.kind", exc_type_str},
-                {"stack", traceback_str}});
+                {"message", std::move(exc_value_str)},
+                {"error.object", std::move(exc_value_str)},
+                {"error.kind", std::move(exc_type_str)},
+                {"stack", std::move(traceback_str)}});
   }
   span_->FinishWithOptions(finish_span_options_);
   Py_RETURN_NONE;
