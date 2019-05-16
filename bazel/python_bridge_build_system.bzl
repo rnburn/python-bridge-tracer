@@ -83,6 +83,19 @@ def python_bridge_cc_library(name,
       strip_include_prefix = strip_include_prefix,
   )
 
+# wrapper to make derived header-only libraries. See 
+# https://github.com/bazelbuild/rules_foreign_cc/issues/244#issuecomment-492864157
+def python_bridge_derived_headeronly_library(
+        name,
+        hdrs = [],
+        includes = []):
+    native.cc_library(
+      name = name,
+      hdrs = hdrs,
+      copts = python_bridge_private_include_copts(includes, True),
+    )
+  
+
 def python_bridge_cc_binary(
         name,
         args = [],

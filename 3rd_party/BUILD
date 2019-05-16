@@ -1,6 +1,7 @@
 load(
     "//bazel:python_bridge_build_system.bzl",
     "python_bridge_package",
+		"python_bridge_derived_headeronly_library",
 )
 
 load("@rules_foreign_cc//tools/build_defs:configure.bzl", "configure_make")
@@ -40,6 +41,9 @@ configure_make(
     ],
 )
 
+# Produce a header-only cpython library since symbols will already be linked into the interpreter.
+# Uses the process described here
+# https://github.com/bazelbuild/rules_foreign_cc/issues/244
 filegroup(
     name = "cpython_files",
     srcs = [
@@ -48,6 +52,24 @@ filegroup(
     visibility = [
         "//visibility:public",
     ],
+    output_group = "gen_dir",
+)
+
+genrule(
+    name = "cpython_includes",
+    srcs = [
+        ":cpython_files",
+    ],
+    cmd = "cp -r $(location cpython_files)/include/python3.7m $(location cpython_include)",
+    outs = ["cpython_include"],
+)
+
+python_bridge_derived_headeronly_library(
+    name = "cpython_header_only",
+    hdrs = [
+        ":cpython_includes",
+    ],
+		includes = ["cpython_include"],
 )
 
 py_runtime(
