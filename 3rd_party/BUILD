@@ -1,7 +1,7 @@
 load(
     "//bazel:python_bridge_build_system.bzl",
     "python_bridge_package",
-		"python_bridge_derived_headeronly_library",
+    "python_bridge_derived_headeronly_library",
 )
 
 load("@rules_foreign_cc//tools/build_defs:configure.bzl", "configure_make")
@@ -69,7 +69,7 @@ python_bridge_derived_headeronly_library(
     hdrs = [
         ":cpython_includes",
     ],
-		includes = ["cpython_include"],
+    includes = ["cpython_include"],
 )
 
 py_runtime(
