@@ -23,7 +23,7 @@ static PyObject* loadTracer(PyObject* /*self*/, PyObject* args, PyObject* keywor
   }
   return makeTracer(makeDynamicTracer(library, config), scope_manager);
 } catch(const std::exception& e) {
-  PyErr_Format(PyExc_RuntimeError, "failed to load tracer: %s", e.what().c_str());
+  PyErr_Format(PyExc_RuntimeError, "failed to load tracer: %s", e.what());
   return nullptr;
 }
 

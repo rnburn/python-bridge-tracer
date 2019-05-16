@@ -289,8 +289,32 @@ PyObject* SpanBridge::finish(PyObject* args, PyObject* keywords) noexcept {
 // exit
 //--------------------------------------------------------------------------------------------------
 PyObject* SpanBridge::exit(PyObject* args) noexcept {
-  (void)args;
-  // TODO(rnburn): error processing
+  PyObject* exc_type;
+  PyObject* exc_value;
+  PyObject* traceback;
+  if (PyArg_ParseTuple(args, "OOO", &exc_type, &exc_value, &traceback) == 0) {
+    return nullptr;
+  }
+  if (exc_type != Py_None) {
+    span_->SetTag("error", true);
+    std::string exc_value_str;
+    if (!toString(exc_value, exc_value_str)) {
+      return nullptr;
+    }
+    std::string exc_type_str;
+    if (!toString(exc_type, exc_type_str)) {
+      return nullptr;
+    }
+    std::string traceback_str;
+    if (!toString(traceback, traceback_str)) {
+      return nullptr;
+    }
+    span_->Log({{"event", "error"},
+                {"message", exc_value_str},
+                {"error.object", exc_value_str},
+                {"error.kind", exc_type_str},
+                {"stack", traceback_str}});
+  }
   span_->FinishWithOptions(finish_span_options_);
   Py_RETURN_NONE;
 }

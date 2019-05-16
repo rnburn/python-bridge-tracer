@@ -114,6 +114,28 @@ class TestTracer(unittest.TestCase):
         with self.assertRaises(Exception):
             tracer.start_span('abc', child_of='cat')
 
+    def test_with1(self):
+        tracer, traces_path = make_mock_tracer()
+        with tracer.start_span('abc') as s:
+            pass
+        tracer.close()
+        spans = read_spans(traces_path)
+        self.assertEqual(len(spans), 1)
+        self.assertTrue('error' not in spans[0]['tags'])
+
+    def test_with1(self):
+        tracer, traces_path = make_mock_tracer()
+        try:
+            with tracer.start_span('abc') as s:
+                raise RuntimeError('crash n burn')
+        except:
+            pass
+        tracer.close()
+        spans = read_spans(traces_path)
+        self.assertEqual(len(spans), 1)
+        self.assertTrue(spans[0]['tags']['error'])
+
+
     def test_set_operation_name(self):
         tracer, traces_path = make_mock_tracer()
         span = tracer.start_span('abc')
