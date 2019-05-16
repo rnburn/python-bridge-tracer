@@ -135,7 +135,6 @@ class TestTracer(unittest.TestCase):
         self.assertEqual(len(spans), 1)
         self.assertTrue(spans[0]['tags']['error'])
 
-
     def test_set_operation_name(self):
         tracer, traces_path = make_mock_tracer()
         span = tracer.start_span('abc')
