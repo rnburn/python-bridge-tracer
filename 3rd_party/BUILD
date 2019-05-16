@@ -71,8 +71,3 @@ python_bridge_derived_headeronly_library(
     ],
     includes = ["cpython_include"],
 )
-
-py_runtime(
-    name = "python-3.6.0",
-    interpreter_path = "/usr/bin/python3",
-)
