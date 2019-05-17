@@ -1,6 +1,6 @@
 #include "span_bridge.h"
 
-#include "utility.h"
+#include "python_bridge_tracer/utility.h"
 #include "to_string.h"
 #include "python_object_wrapper.h"
 #include "python_string_wrapper.h"

@@ -4,7 +4,7 @@
 
 #include "span_bridge.h"
 #include "span_context.h"
-#include "utility.h"
+#include "python_bridge_tracer/utility.h"
 
 #include <iostream>
 

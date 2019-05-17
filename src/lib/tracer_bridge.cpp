@@ -7,7 +7,7 @@
 #include "span_context.h"
 #include "dict_writer.h"
 #include "dict_reader.h"
-#include "utility.h"
+#include "python_bridge_tracer/utility.h"
 #include "opentracing_module.h"
 #include "python_object_wrapper.h"
 #include "python_string_wrapper.h"

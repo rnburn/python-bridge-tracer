@@ -4,7 +4,7 @@
 
 #include "python_bridge_tracer/module.h"
 
-#include "utility.h"
+#include "python_bridge_tracer/utility.h"
 
 static PyObject* SpanContextType;
 

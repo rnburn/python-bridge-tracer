@@ -9,7 +9,7 @@
 #include "opentracing_module.h"
 #include "tracer_bridge.h"
 #include "span.h"
-#include "utility.h"
+#include "python_bridge_tracer/utility.h"
 
 static PyObject* TracerType;
 

@@ -10,6 +10,7 @@ python_bridge_cc_library(
     name = "module_interface",
     hdrs = [
         "module.h",
+        "utility.h",
     ],
     external_deps = [
         "@io_opentracing_cpp//:opentracing",
