@@ -128,12 +128,10 @@ static bool addReference(
     PyObject* reference,
     std::vector<std::pair<opentracing::SpanReferenceType, SpanContextBridge>>&
         cpp_references) noexcept {
-  auto reference_type = PyObject_GetAttrString(reference, "type");
-  if (reference_type == nullptr) {
+  PythonObjectWrapper reference_type = PyObject_GetAttrString(reference, "type");
+  if (reference_type.error()) {
     return false;
   }
-  auto cleanup_reference_type =
-      finally([reference_type] { Py_DECREF(reference_type); });
   opentracing::SpanReferenceType cpp_reference_type;
   if (!getReferenceType(reference_type, cpp_reference_type)) {
     return false;
