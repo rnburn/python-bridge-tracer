@@ -5,7 +5,7 @@
 
 #include "python_bridge_tracer/module.h"
 
-#include "python_object_wrapper.h"
+#include "python_bridge_tracer/python_object_wrapper.h"
 #include "opentracing_module.h"
 #include "tracer_bridge.h"
 #include "span.h"

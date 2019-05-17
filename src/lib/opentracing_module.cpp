@@ -1,7 +1,7 @@
 #include "python_bridge_tracer/module.h"
 
 #include "python_bridge_tracer/utility.h"
-#include "python_object_wrapper.h"
+#include "python_bridge_tracer/python_object_wrapper.h"
 
 namespace python_bridge_tracer {
 //--------------------------------------------------------------------------------------------------
