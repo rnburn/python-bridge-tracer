@@ -11,7 +11,8 @@ python_bridge_cc_library(
     hdrs = [
         "module.h",
         "utility.h",
-        "python_object_wrapper.h"
+        "python_object_wrapper.h",
+        "python_string_wrapper.h",
     ],
     external_deps = [
         "@io_opentracing_cpp//:opentracing",

@@ -10,7 +10,7 @@
 #include "python_bridge_tracer/utility.h"
 #include "opentracing_module.h"
 #include "python_bridge_tracer/python_object_wrapper.h"
-#include "python_string_wrapper.h"
+#include "python_bridge_tracer/python_string_wrapper.h"
 #include "python_bridge_error.h"
 
 #include "python_bridge_tracer/module.h"

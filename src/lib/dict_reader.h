@@ -2,7 +2,7 @@
 
 #include <Python.h>
 
-#include "python_string_wrapper.h"
+#include "python_bridge_tracer/python_string_wrapper.h"
 
 #include <opentracing/propagation.h>
 
