@@ -5,6 +5,7 @@
 
 #include "python_bridge_tracer/module.h"
 
+#include "python_object_wrapper.h"
 #include "opentracing_module.h"
 #include "tracer_bridge.h"
 #include "span.h"
@@ -38,20 +39,14 @@ static void deallocTracer(TracerObject* self) noexcept {
 // activateSpan
 //--------------------------------------------------------------------------------------------------
 static PyObject* activateSpan(TracerObject* self, PyObject* span, int finish_on_close) noexcept {
-  auto args = Py_BuildValue("Oi", span, finish_on_close);
-  if (args == nullptr) {
+  PythonObjectWrapper args = Py_BuildValue("Oi", span, finish_on_close);
+  if (args.error()) {
     return nullptr;
   }
-  auto cleanup_args = finally([args] {
-      Py_DECREF(args);
-  });
-  auto activate_function = PyObject_GetAttrString(self->scope_manager, "activate");
-  if (activate_function == nullptr) {
+  PythonObjectWrapper activate_function = PyObject_GetAttrString(self->scope_manager, "activate");
+  if (activate_function.error()) {
     return nullptr;
   }
-  auto cleanup_activate_function = finally([activate_function] {
-      Py_DECREF(activate_function);
-  });
   return PyObject_CallObject(activate_function, args);
 }
 
