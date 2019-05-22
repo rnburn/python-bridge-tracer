@@ -16,6 +16,6 @@ python_bridge_cc_library(
     ],
     external_deps = [
         "@io_opentracing_cpp//:opentracing",
-        "//3rd_party:cpython",
+        "@com_github_python_cpython//:cpython_header_lib",
     ],
 )
