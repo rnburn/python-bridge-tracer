@@ -1,7 +1,7 @@
 #include "span_context_bridge.h"
 
-#include "python_object_wrapper.h"
-#include "utility.h"
+#include "python_bridge_tracer/python_object_wrapper.h"
+#include "python_bridge_tracer/utility.h"
 
 namespace python_bridge_tracer {
 //--------------------------------------------------------------------------------------------------

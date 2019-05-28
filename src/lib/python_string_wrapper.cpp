@@ -1,4 +1,4 @@
-#include "python_string_wrapper.h"
+#include "python_bridge_tracer/python_string_wrapper.h"
 
 namespace python_bridge_tracer {
 //--------------------------------------------------------------------------------------------------

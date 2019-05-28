@@ -2,7 +2,7 @@
 
 #include <Python.h>
 
-#include "python_object_wrapper.h"
+#include "python_bridge_tracer/python_object_wrapper.h"
 #include "opentracing/string_view.h"
 
 namespace python_bridge_tracer {

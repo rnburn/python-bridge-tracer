@@ -1,6 +1,6 @@
 #include "dict_writer.h"
 
-#include "python_object_wrapper.h"
+#include "python_bridge_tracer/python_object_wrapper.h"
 #include "python_bridge_error.h"
 
 namespace python_bridge_tracer {

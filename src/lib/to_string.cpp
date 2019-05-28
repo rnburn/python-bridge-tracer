@@ -2,9 +2,9 @@
 
 #include <cassert>
 
-#include "utility.h"
-#include "python_object_wrapper.h"
-#include "python_string_wrapper.h"
+#include "python_bridge_tracer/utility.h"
+#include "python_bridge_tracer/python_object_wrapper.h"
+#include "python_bridge_tracer/python_string_wrapper.h"
 
 namespace python_bridge_tracer {
 //--------------------------------------------------------------------------------------------------

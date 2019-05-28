@@ -5,10 +5,11 @@
 
 #include "python_bridge_tracer/module.h"
 
+#include "python_bridge_tracer/python_object_wrapper.h"
 #include "opentracing_module.h"
 #include "tracer_bridge.h"
 #include "span.h"
-#include "utility.h"
+#include "python_bridge_tracer/utility.h"
 
 static PyObject* TracerType;
 
@@ -38,20 +39,14 @@ static void deallocTracer(TracerObject* self) noexcept {
 // activateSpan
 //--------------------------------------------------------------------------------------------------
 static PyObject* activateSpan(TracerObject* self, PyObject* span, int finish_on_close) noexcept {
-  auto args = Py_BuildValue("Oi", span, finish_on_close);
-  if (args == nullptr) {
+  PythonObjectWrapper args = Py_BuildValue("Oi", span, finish_on_close);
+  if (args.error()) {
     return nullptr;
   }
-  auto cleanup_args = finally([args] {
-      Py_DECREF(args);
-  });
-  auto activate_function = PyObject_GetAttrString(self->scope_manager, "activate");
-  if (activate_function == nullptr) {
+  PythonObjectWrapper activate_function = PyObject_GetAttrString(self->scope_manager, "activate");
+  if (activate_function.error()) {
     return nullptr;
   }
-  auto cleanup_activate_function = finally([activate_function] {
-      Py_DECREF(activate_function);
-  });
   return PyObject_CallObject(activate_function, args);
 }
 
@@ -98,12 +93,11 @@ static PyObject* startActiveSpan(TracerObject* self, PyObject* args, PyObject* k
                                static_cast<size_t>(operation_name_length)},
       self->scope_manager, parent, references, tags, start_time,
       static_cast<bool>(ignore_active_span));
-  auto span =
+  PythonObjectWrapper span =
       makeSpan(std::move(span_bridge), reinterpret_cast<PyObject*>(self));
-  if (span == nullptr) {
+  if (span.error()) {
     return nullptr;
   }
-  auto cleanup_span = finally([span] { Py_DECREF(span); });
   return activateSpan(self, span, finish_on_close);
 }
 
@@ -181,13 +175,10 @@ static PyObject* getScopeManager(TracerObject* self, void* /*ignored*/) noexcept
 // getActiveSpan
 //--------------------------------------------------------------------------------------------------
 static PyObject* getActiveSpan(TracerObject* self, void* /*ignored*/) noexcept {
-  auto scope = PyObject_GetAttrString(self->scope_manager, "active");
-  if (scope == nullptr) {
+  PythonObjectWrapper scope = PyObject_GetAttrString(self->scope_manager, "active");
+  if (scope.error()) {
     return nullptr;
   }
-  auto cleanup_scope = finally([scope] {
-      Py_DECREF(scope);
-  });
   if (scope == Py_None) {
     Py_RETURN_NONE;
   }

@@ -1,8 +1,9 @@
 #include "span_bridge.h"
 
-#include "utility.h"
+#include "python_bridge_tracer/utility.h"
 #include "to_string.h"
-#include "python_string_wrapper.h"
+#include "python_bridge_tracer/python_object_wrapper.h"
+#include "python_bridge_tracer/python_string_wrapper.h"
 
 namespace python_bridge_tracer {
 //--------------------------------------------------------------------------------------------------
@@ -10,13 +11,10 @@ namespace python_bridge_tracer {
 //--------------------------------------------------------------------------------------------------
 static bool setStringTag(opentracing::Span& span, opentracing::string_view key,
     PyObject* value) noexcept {
-  auto utf8 = PyUnicode_AsUTF8String(value);
-  if (utf8 == nullptr) {
+  PythonObjectWrapper utf8 = PyUnicode_AsUTF8String(value);
+  if (utf8.error()) {
     return false;
   }
-  auto cleanup_utf8 = finally([utf8] {
-      Py_DECREF(utf8);
-  });
   char* s;
   auto rcode = PyBytes_AsStringAndSize(utf8, &s, nullptr);
   if (rcode == -1) {

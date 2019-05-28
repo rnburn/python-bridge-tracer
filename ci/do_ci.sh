@@ -14,7 +14,7 @@ if [[ "$1" == "clang_tidy" ]]; then
   export CC=/usr/bin/clang-6.0
   CC=/usr/bin/clang-6.0 bazel build \
         $BAZEL_OPTIONS \
-        //src/... //test/... 
+        //...
   ./ci/gen_compilation_database.sh
   ./ci/fix_compilation_database.py
   ./ci/run_clang_tidy.sh |& tee /clang-tidy-result.txt
