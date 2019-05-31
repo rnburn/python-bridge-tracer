@@ -28,6 +28,13 @@ static PyObject* loadTracer(PyObject* /*self*/, PyObject* args, PyObject* keywor
 }
 
 //--------------------------------------------------------------------------------------------------
+// flush
+//--------------------------------------------------------------------------------------------------
+void flush(opentracing::Tracer& /*tracer*/, std::chrono::microseconds /*timeout*/) noexcept {
+  // Do nothing not part of the OpenTracing API.
+}
+
+//--------------------------------------------------------------------------------------------------
 // ModuleMethods
 //--------------------------------------------------------------------------------------------------
 static PyMethodDef ModuleMethods[] = {

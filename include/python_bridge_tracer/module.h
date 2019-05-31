@@ -17,6 +17,16 @@ namespace python_bridge_tracer {
 PyObject* makeTracer(std::shared_ptr<opentracing::Tracer> tracer, PyObject* scope_manager) noexcept;
 
 /**
+ * An extension method not part of the official OpenTracing API but commonly
+ * added. Tracers can implement this function or optionally do nothing if flush
+ * isn't supported.
+ *
+ * @param tracer the tracer
+ * @param the flush timeout or 0 if none was provided.
+ */
+void flush(opentracing::Tracer& tracer, std::chrono::microseconds timeout) noexcept;
+
+/**
  * Setup the OpenTracing python classes.
  * @param module the module to add the classes to
  * @return true if successful

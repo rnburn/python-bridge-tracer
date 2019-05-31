@@ -164,6 +164,24 @@ static PyObject* close(TracerObject* self) noexcept {
 }
 
 //--------------------------------------------------------------------------------------------------
+// flushPython
+//--------------------------------------------------------------------------------------------------
+static PyObject* flushPython(TracerObject* self, PyObject* args,
+                             PyObject* keywords) noexcept {
+  static char* keyword_names[] = {const_cast<char*>("timeout"), nullptr};
+  double timeout = 0;
+  const char* arguments_format = "|d:flush";
+  if (PyArg_ParseTupleAndKeywords(args, keywords, arguments_format,
+                                  keyword_names, &timeout) == 0) {
+    return nullptr;
+  }
+  auto timeout_microseconds =
+      std::chrono::microseconds{static_cast<uint64_t>(timeout * 1.0e6)};
+  flush(self->tracer_bridge->tracer(), timeout_microseconds);
+  Py_RETURN_NONE;
+}
+
+//--------------------------------------------------------------------------------------------------
 // getScopeManager
 //--------------------------------------------------------------------------------------------------
 static PyObject* getScopeManager(TracerObject* self, void* /*ignored*/) noexcept {
@@ -194,11 +212,15 @@ static PyMethodDef TracerMethods[] = {
     {"start_active_span", reinterpret_cast<PyCFunction>(startActiveSpan),
      METH_VARARGS | METH_KEYWORDS, PyDoc_STR("start and activate a span")},
     {"inject", reinterpret_cast<PyCFunction>(inject),
-     METH_VARARGS | METH_KEYWORDS, PyDoc_STR("injects a span's context into a carrier")},
+     METH_VARARGS | METH_KEYWORDS,
+     PyDoc_STR("injects a span's context into a carrier")},
     {"extract", reinterpret_cast<PyCFunction>(extract),
-     METH_VARARGS | METH_KEYWORDS, PyDoc_STR("extracts a span's context from a carrier")},
+     METH_VARARGS | METH_KEYWORDS,
+     PyDoc_STR("extracts a span's context from a carrier")},
     {"close", reinterpret_cast<PyCFunction>(close), METH_VARARGS,
      PyDoc_STR("close tracer")},
+    {"flush", reinterpret_cast<PyCFunction>(flushPython),
+     METH_VARARGS | METH_KEYWORDS, PyDoc_STR("flush a tracer")},
     {nullptr, nullptr}};
 
 //--------------------------------------------------------------------------------------------------
