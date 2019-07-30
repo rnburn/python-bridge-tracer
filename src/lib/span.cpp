@@ -30,6 +30,7 @@ struct SpanObject {
 static void deallocSpan(SpanObject* self) noexcept {
   delete self->span_bridge;
   Py_DECREF(self->tracer);
+  PyObject_Free(static_cast<void*>(self));
 }
 
 //--------------------------------------------------------------------------------------------------

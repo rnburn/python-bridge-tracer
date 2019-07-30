@@ -33,6 +33,7 @@ struct TracerObject {
 static void deallocTracer(TracerObject* self) noexcept {
   delete self->tracer_bridge;
   Py_DECREF(self->scope_manager);
+  PyObject_Free(static_cast<void*>(self));
 }
 
 //--------------------------------------------------------------------------------------------------
