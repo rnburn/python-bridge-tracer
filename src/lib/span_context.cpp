@@ -26,6 +26,7 @@ struct SpanContextObject {
 //--------------------------------------------------------------------------------------------------
 static void deallocSpanContext(SpanContextObject* self) noexcept {
   delete self->span_context_bridge;
+  PyObject_Free(static_cast<void*>(self));
 }
 
 //--------------------------------------------------------------------------------------------------
