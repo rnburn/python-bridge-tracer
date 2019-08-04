@@ -18,6 +18,15 @@ http_archive(
     ],
 )
 
+http_archive(
+    name = "com_github_python_cpython_27",
+    build_file = "//bazel:cpython.BUILD",
+    strip_prefix = "cpython-2.7.16",
+    urls = [
+        "https://github.com/python/cpython/archive/v2.7.16.tar.gz",
+    ],
+)
+
 new_local_repository(
     name = "vendored_pyconfig",
     path = ".",
