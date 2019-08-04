@@ -5,6 +5,7 @@
 #include "span_bridge.h"
 #include "span_context.h"
 #include "python_bridge_tracer/utility.h"
+#include "python_bridge_tracer/type.h"
 
 #include <iostream>
 
@@ -189,22 +190,6 @@ static PyGetSetDef SpanGetSetList[] = {
     {nullptr}};
 
 //--------------------------------------------------------------------------------------------------
-// SpanTypeSlots
-//--------------------------------------------------------------------------------------------------
-static PyType_Slot SpanTypeSlots[] = {{Py_tp_doc, toVoidPtr("CppBridgeSpan")},
-                                      {Py_tp_dealloc, toVoidPtr(deallocSpan)},
-                                      {Py_tp_methods, toVoidPtr(SpanMethods)},
-                                      {Py_tp_getset, toVoidPtr(SpanGetSetList)},
-                                      {0, nullptr}};
-
-//--------------------------------------------------------------------------------------------------
-// SpanTypeSpec
-//--------------------------------------------------------------------------------------------------
-static PyType_Spec SpanTypeSpec = {PYTHON_BRIDGE_TRACER_MODULE "._Span",
-                                   sizeof(SpanObject), 0, Py_TPFLAGS_DEFAULT,
-                                   SpanTypeSlots};
-
-//--------------------------------------------------------------------------------------------------
 // startSpan
 //--------------------------------------------------------------------------------------------------
 PyObject* makeSpan(std::unique_ptr<SpanBridge>&& span_bridge,
@@ -239,7 +224,15 @@ SpanContextBridge getSpanContextFromSpan(PyObject* object) noexcept {
 // setupSpanClass
 //--------------------------------------------------------------------------------------------------
 bool setupSpanClass(PyObject* module) noexcept {
-  auto span_type = PyType_FromSpec(&SpanTypeSpec);
+  TypeDescription type_description;
+  type_description.name =
+    PYTHON_BRIDGE_TRACER_MODULE "._Span";
+  type_description.size = sizeof(SpanObject);
+  type_description.doc = toVoidPtr("CppBridgeSpan");
+  type_description.dealloc = toVoidPtr(deallocSpan);
+  type_description.methods = toVoidPtr(SpanMethods);
+  type_description.getset = toVoidPtr(SpanGetSetList);
+  auto span_type = makeType<SpanObject>(type_description);
   if (span_type == nullptr) {
     return false;
   }
