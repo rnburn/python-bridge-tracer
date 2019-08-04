@@ -41,21 +41,15 @@ static PyMethodDef ModuleMethods[] = {
     {"load_tracer", reinterpret_cast<PyCFunction>(loadTracer),
      METH_VARARGS | METH_KEYWORDS, PyDoc_STR("loads a C++ opentracing plugin")},
     {nullptr, nullptr}};
-
-//--------------------------------------------------------------------------------------------------
-// ModuleDefinition
-//--------------------------------------------------------------------------------------------------
-static PyModuleDef ModuleDefinition = {PyModuleDef_HEAD_INIT, "bridge_tracer",
-                                       "doc string", -1, ModuleMethods};
 } // namespace python_bridge_tracer
 
 //--------------------------------------------------------------------------------------------------
 // PyInit_bridge_tracer
 //--------------------------------------------------------------------------------------------------
 extern "C" {
-PyMODINIT_FUNC PyInit_bridge_tracer() noexcept {
+PY_BRIDGE_DEFINE_MODULE(bridge_tracer) {
   using namespace python_bridge_tracer;
-  auto module = PyModule_Create(&ModuleDefinition);
+  auto module = makeModule("bridge_tracer", "bridge a c++ tracer", ModuleMethods);
   if (module == nullptr) {
     return nullptr;
   }

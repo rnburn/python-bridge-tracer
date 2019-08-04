@@ -7,6 +7,8 @@
 #include <Python.h>
 #include <opentracing/tracer.h>
 
+#include "python_bridge_tracer/module_py3.h"
+
 namespace python_bridge_tracer {
 /**
  * Make an OpenTracing python tracer from a C++ tracer and a scope manager
@@ -32,4 +34,6 @@ void flush(opentracing::Tracer& tracer, std::chrono::microseconds timeout) noexc
  * @return true if successful
  */
 bool setupClasses(PyObject* module) noexcept;
+
+PyObject* makeModule(const char* name, const char* doc, PyMethodDef* methods) noexcept;
 } // namespace python_bridge_tracer
