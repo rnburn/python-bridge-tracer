@@ -10,6 +10,7 @@
 #include "tracer_bridge.h"
 #include "span.h"
 #include "python_bridge_tracer/utility.h"
+#include "python_bridge_tracer/type.h"
 
 static PyObject* TracerType;
 
@@ -235,23 +236,6 @@ static PyGetSetDef TracerGetSetList[] = {
     {nullptr}};
 
 //--------------------------------------------------------------------------------------------------
-// TracerTypeSlots
-//--------------------------------------------------------------------------------------------------
-static PyType_Slot TracerTypeSlots[] = {
-    {Py_tp_doc, toVoidPtr("CppBridgeTracer")},
-    {Py_tp_dealloc, toVoidPtr(deallocTracer)},
-    {Py_tp_methods, toVoidPtr(TracerMethods)},
-    {Py_tp_getset, toVoidPtr(TracerGetSetList)},
-    {0, nullptr}};
-
-//--------------------------------------------------------------------------------------------------
-// TracerTypeSpec
-//--------------------------------------------------------------------------------------------------
-static PyType_Spec TracerTypeSpec = {PYTHON_BRIDGE_TRACER_MODULE "._Tracer",
-                                     sizeof(TracerObject), 0,
-                                     Py_TPFLAGS_DEFAULT, TracerTypeSlots};
-
-//--------------------------------------------------------------------------------------------------
 // makeTracer
 //--------------------------------------------------------------------------------------------------
 PyObject* makeTracer(std::shared_ptr<opentracing::Tracer> tracer,
@@ -282,7 +266,14 @@ PyObject* makeTracer(std::shared_ptr<opentracing::Tracer> tracer,
 // setupTracerClass
 //--------------------------------------------------------------------------------------------------
 bool setupTracerClass(PyObject* module) noexcept {
-  auto tracer_type = PyType_FromSpec(&TracerTypeSpec);
+  TypeDescription type_description;
+  type_description.name = PYTHON_BRIDGE_TRACER_MODULE "._Tracer";
+  type_description.size = sizeof(TracerObject);
+  type_description.doc = toVoidPtr("CppBridgeTracer");
+  type_description.dealloc = toVoidPtr(deallocTracer);
+  type_description.methods = toVoidPtr(TracerMethods);
+  type_description.getset = toVoidPtr(TracerGetSetList);
+  auto tracer_type = makeType<TracerObject>(type_description);
   if (tracer_type == nullptr) {
     return false;
   }
