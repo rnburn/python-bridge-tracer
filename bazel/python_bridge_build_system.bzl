@@ -68,6 +68,12 @@ def python_bridge_cc_library(name,
                      data = [],
                      is_3rd_party = False,
                      strip_include_prefix = None):
+  external_deps = external_deps + [
+	  "@com_github_python_cpython3//:cpython_header_lib",
+    "@vendored_pyconfig3//:pyconfig_lib",
+  ]
+  name = name + "_py3"
+  deps = [dep + "_py3" for dep in deps]
   native.cc_library(
       name = name,
       srcs = srcs + private_hdrs,
@@ -82,19 +88,6 @@ def python_bridge_cc_library(name,
       visibility = visibility,
       strip_include_prefix = strip_include_prefix,
   )
-
-# wrapper to make derived header-only libraries. See 
-# https://github.com/bazelbuild/rules_foreign_cc/issues/244#issuecomment-492864157
-def python_bridge_derived_headeronly_library(
-        name,
-        hdrs = [],
-        includes = []):
-    native.cc_library(
-      name = name,
-      hdrs = hdrs,
-      copts = python_bridge_private_include_copts(includes, True),
-    )
-  
 
 def python_bridge_cc_binary(
         name,
