@@ -156,28 +156,6 @@ static PyObject* getTracer(SpanObject* self, PyObject* /*ignored*/) noexcept {
 //--------------------------------------------------------------------------------------------------
 // SpanMethods
 //--------------------------------------------------------------------------------------------------
-/* static PyMethodDef SpanMethods[] = { */
-/*     {const_cast<char*>("set_operation_name"), reinterpret_cast<PyCFunction>(setOperationName), */
-/*      METH_VARARGS | METH_KEYWORDS, const_cast<char*>(PyDoc_STR("set the span's operation name"))}, */
-/*     {const_cast<char*>("set_tag"), reinterpret_cast<PyCFunction>(setTag), */
-/*      METH_VARARGS | METH_KEYWORDS, const_cast<char*>(PyDoc_STR("set a tag"))}, */
-/*     {const_cast<char*>("log_kv"), reinterpret_cast<PyCFunction>(logKeyValues), */
-/*      METH_VARARGS | METH_KEYWORDS, const_cast<char*>(PyDoc_STR("log key-values"))}, */
-/*     {const_cast<char*>("set_baggage_item"), reinterpret_cast<PyCFunction>(setBaggageItem), */
-/*      METH_VARARGS | METH_KEYWORDS, const_cast<char*>(PyDoc_STR("stores a baggage item"))}, */
-/*     {const_cast<char*>("get_baggage_item"), reinterpret_cast<PyCFunction>(getBaggageItem), */
-/*      METH_VARARGS | METH_KEYWORDS, const_cast<char*>(PyDoc_STR("retrieves a baggage item"))}, */
-/*     {const_cast<char*>("log_event"), reinterpret_cast<PyCFunction>(logEvent), */
-/*      METH_VARARGS | METH_KEYWORDS, const_cast<char*>(PyDoc_STR("log an event"))}, */
-/*     {const_cast<char*>("log"), reinterpret_cast<PyCFunction>(log), METH_VARARGS | METH_KEYWORDS, */
-/*      PyDoc_STR("log key-values")}, */
-/*     {const_cast<char*>("finish"), reinterpret_cast<PyCFunction>(finish), */
-/*      METH_VARARGS | METH_KEYWORDS, const_cast<char*>(PyDoc_STR("finish the span"))}, */
-/*     {const_cast<char*>("__enter__"), reinterpret_cast<PyCFunction>(enterContext), METH_NOARGS, */
-/*      nullptr}, */
-/*     {const_cast<char*>("__exit__"), reinterpret_cast<PyCFunction>(exitContext), METH_VARARGS, */
-/*      nullptr}, */
-/*     {nullptr, nullptr}}; */
 static PyMethodDef SpanMethods[] = {
     {"set_operation_name", reinterpret_cast<PyCFunction>(setOperationName),
      METH_VARARGS | METH_KEYWORDS, PyDoc_STR("set the span's operation name")},
