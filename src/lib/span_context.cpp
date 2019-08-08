@@ -70,8 +70,8 @@ static PyObject* getBaggage(SpanContextObject* self, PyObject* /*ignored*/) noex
 // SpanContextGetSetList
 //--------------------------------------------------------------------------------------------------
 static PyGetSetDef SpanContextGetSetList[] = {
-    {"baggage", reinterpret_cast<getter>(getBaggage), nullptr,
-     PyDoc_STR("return the context's baggage")},
+    {const_cast<char*>("baggage"), reinterpret_cast<getter>(getBaggage), nullptr,
+     const_cast<char*>(PyDoc_STR("return the context's baggage"))},
     {nullptr}};
 
 //--------------------------------------------------------------------------------------------------

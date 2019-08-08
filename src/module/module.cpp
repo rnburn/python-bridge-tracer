@@ -47,15 +47,15 @@ static PyMethodDef ModuleMethods[] = {
 // PyInit_bridge_tracer
 //--------------------------------------------------------------------------------------------------
 extern "C" {
-PY_BRIDGE_DEFINE_MODULE(bridge_tracer) {
+PYTHON_BRIDGE_TRACER_DEFINE_MODULE(bridge_tracer) {
   using namespace python_bridge_tracer;
   auto module = makeModule("bridge_tracer", "bridge a c++ tracer", ModuleMethods);
   if (module == nullptr) {
-    return nullptr;
+    PYTHON_BRIDGE_TRACER_MODULE_RETURN(nullptr);
   }
   if (!setupClasses(module)) {
-    return nullptr;
+    PYTHON_BRIDGE_TRACER_MODULE_RETURN(nullptr);
   }
-  return module;
+  PYTHON_BRIDGE_TRACER_MODULE_RETURN(module);
 }
 } // extern "C"

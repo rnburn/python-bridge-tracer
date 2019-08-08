@@ -7,7 +7,15 @@
 #include <Python.h>
 #include <opentracing/tracer.h>
 
-#include "python_bridge_tracer/module_py3.h"
+#include "python_bridge_tracer/version.h"
+
+#ifdef PYTHON_BRIDGE_TRACER_PY3
+#define PYTHON_BRIDGE_TRACER_DEFINE_MODULE(NAME) PyMODINIT_FUNC PyInit_##NAME() noexcept
+#define PYTHON_BRIDGE_TRACER_MODULE_RETURN(VALUE) return VALUE
+#else
+#define PYTHON_BRIDGE_TRACER_DEFINE_MODULE(NAME) PyMODINIT_FUNC init##NAME() noexcept
+#define PYTHON_BRIDGE_TRACER_MODULE_RETURN(VALUE) return
+#endif
 
 namespace python_bridge_tracer {
 /**

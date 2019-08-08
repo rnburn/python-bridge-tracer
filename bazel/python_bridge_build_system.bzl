@@ -68,26 +68,28 @@ def python_bridge_cc_library(name,
                      data = [],
                      is_3rd_party = False,
                      strip_include_prefix = None):
-  external_deps = external_deps + [
-	  "@com_github_python_cpython3//:cpython_header_lib",
-    "@vendored_pyconfig3//:pyconfig_lib",
-  ]
-  name = name + "_py3"
-  deps = [dep + "_py3" for dep in deps]
-  native.cc_library(
-      name = name,
-      srcs = srcs + private_hdrs,
-      hdrs = hdrs,
-      copts = python_bridge_include_copts() + python_bridge_copts(is_3rd_party) + copts,
-      linkopts = linkopts,
-      includes = includes,
-      deps = external_deps + deps,
-      data = data,
-      linkstatic = 1,
-      include_prefix = python_bridge_include_prefix(native.package_name()),
-      visibility = visibility,
-      strip_include_prefix = strip_include_prefix,
-  )
+  for version, tag in [("3", ""), ("27", "m")]:
+    suffix = version + tag
+    external_deps_prime = external_deps + [
+      "@com_github_python_cpython%s//:cpython_header_lib" % version,
+      "@vendored_pyconfig%s//:pyconfig_lib" % suffix,
+    ]
+    name_prime = name + "_py" + suffix
+    deps_prime = [dep + "_py" + suffix for dep in deps]
+    native.cc_library(
+        name = name_prime,
+        srcs = srcs + private_hdrs,
+        hdrs = hdrs,
+        copts = python_bridge_include_copts() + python_bridge_copts(is_3rd_party) + copts,
+        linkopts = linkopts,
+        includes = includes,
+        deps = external_deps_prime + deps_prime,
+        data = data,
+        linkstatic = 1,
+        include_prefix = python_bridge_include_prefix(native.package_name()),
+        visibility = visibility,
+        strip_include_prefix = strip_include_prefix,
+    )
 
 def python_bridge_cc_binary(
         name,

@@ -1,7 +1,10 @@
 #include "python_bridge_tracer/type.h"
+#include "python_bridge_tracer/version.h"
 
 #include <cassert>
 #include <vector>
+
+#ifdef PYTHON_BRIDGE_TRACER_PY3
 
 namespace python_bridge_tracer {
 //--------------------------------------------------------------------------------------------------
@@ -39,3 +42,4 @@ PyObject* makeTypeImpl(const TypeDescription& type_description) noexcept {
   return PyType_FromSpec(&type_spec);
 }
 }  // namespace python_bridge_tracer
+#endif

@@ -53,3 +53,14 @@ cc_binary(
         "//visibility:public",
     ],
 )
+
+cc_binary(
+    name = "bridge_tracer27m.so",
+    linkshared = True,
+    deps = [
+      "//:bridge_tracer_module_lib_py27m",
+    ],
+    visibility = [
+        "//visibility:public",
+    ],
+)

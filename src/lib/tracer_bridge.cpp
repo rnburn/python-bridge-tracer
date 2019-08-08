@@ -232,11 +232,11 @@ static void setPropagationError(std::error_code error_code) noexcept {
       if (exception.error()) {
         return;
       }
-      PyErr_Format(exception, error_code.message().c_str());
+      PyErr_Format(exception, "%s", error_code.message().c_str());
       return;
     }
   }
-  PyErr_Format(PyExc_RuntimeError, error_code.message().c_str());
+  PyErr_Format(PyExc_RuntimeError, "%s", error_code.message().c_str());
 }
 
 //--------------------------------------------------------------------------------------------------

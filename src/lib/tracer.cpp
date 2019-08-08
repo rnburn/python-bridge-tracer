@@ -229,10 +229,11 @@ static PyMethodDef TracerMethods[] = {
 // TracerGetSetList
 //--------------------------------------------------------------------------------------------------
 static PyGetSetDef TracerGetSetList[] = {
-    {"scope_manager", reinterpret_cast<getter>(getScopeManager), nullptr,
-     PyDoc_STR("Returns the attached ScopeManager")},
-    {"active_span", reinterpret_cast<getter>(getActiveSpan), nullptr,
-     PyDoc_STR("Returns the active span")},
+    {const_cast<char*>("scope_manager"),
+     reinterpret_cast<getter>(getScopeManager), nullptr,
+     const_cast<char*>(PyDoc_STR("Returns the attached ScopeManager"))},
+    {const_cast<char*>("active_span"), reinterpret_cast<getter>(getActiveSpan),
+     nullptr, const_cast<char*>(PyDoc_STR("Returns the active span"))},
     {nullptr}};
 
 //--------------------------------------------------------------------------------------------------
@@ -258,7 +259,7 @@ PyObject* makeTracer(std::shared_ptr<opentracing::Tracer> tracer,
   result->scope_manager = scope_manager;
   return reinterpret_cast<PyObject*>(result);
 } catch (const std::exception& e) {
-  PyErr_Format(PyExc_RuntimeError, e.what());
+  PyErr_Format(PyExc_RuntimeError, "%s", e.what());
   return nullptr;
 }
 
