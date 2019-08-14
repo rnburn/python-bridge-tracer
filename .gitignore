@@ -36,3 +36,5 @@
 /bazel-*
 
 *.swp
+
+compile_commands.json

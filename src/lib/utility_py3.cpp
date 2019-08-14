@@ -24,10 +24,7 @@ bool isInt(PyObject* obj) noexcept {
 //--------------------------------------------------------------------------------------------------
 bool toLong(PyObject* obj, long& value) noexcept {
   value = PyLong_AsLong(obj);
-  if (value == -1 && PyErr_Occurred() != nullptr) {
-    return false;
-  }
-  return true;
+  return !(value == -1 && PyErr_Occurred() != nullptr);
 }
 
 //--------------------------------------------------------------------------------------------------
