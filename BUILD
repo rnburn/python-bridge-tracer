@@ -42,25 +42,3 @@ python_bridge_cc_library(
         "@io_opentracing_cpp//:opentracing",
     ],
 )
-
-cc_binary(
-    name = "bridge_tracer.so",
-    linkshared = True,
-    deps = [
-      "//:bridge_tracer_module_lib_py3",
-    ],
-    visibility = [
-        "//visibility:public",
-    ],
-)
-
-cc_binary(
-    name = "bridge_tracer27m.so",
-    linkshared = True,
-    deps = [
-      "//:bridge_tracer_module_lib_py27m",
-    ],
-    visibility = [
-        "//visibility:public",
-    ],
-)
