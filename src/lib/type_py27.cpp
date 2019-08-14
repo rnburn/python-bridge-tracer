@@ -8,8 +8,9 @@ PyObject* makeTypeImpl(PyTypeObject& type) noexcept {
   if (PyType_Ready(&type) < 0) {
     return nullptr;
   }
-  Py_INCREF(&type);
-  return reinterpret_cast<PyObject*>(&type);
+  auto type_obj = reinterpret_cast<PyObject*>(&type);
+  Py_INCREF(type_obj);
+  return type_obj;
 }
 }  // namespace python_bridge_tracer
 #endif
