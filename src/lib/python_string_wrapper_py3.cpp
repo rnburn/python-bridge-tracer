@@ -1,5 +1,9 @@
 #include "python_bridge_tracer/python_string_wrapper.h"
 
+#include "python_bridge_tracer/version.h"
+
+#ifdef PYTHON_BRIDGE_TRACER_PY3
+
 namespace python_bridge_tracer {
 //--------------------------------------------------------------------------------------------------
 // constructor
@@ -15,11 +19,6 @@ PythonStringWrapper::PythonStringWrapper(PyObject* object) noexcept
     return;
   }
 }
-
-//--------------------------------------------------------------------------------------------------
-// operator opentracing::string_view
-//--------------------------------------------------------------------------------------------------
-PythonStringWrapper::operator opentracing::string_view() const noexcept {
-  return opentracing::string_view{data_, static_cast<size_t>(length_)};
-}
 } // namespace python_bridge_tracer
+
+#endif

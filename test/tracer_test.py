@@ -1,9 +1,13 @@
-import bridge_tracer
 import tempfile
 import os
+import sys
 import json
 import unittest
 import opentracing
+
+for pyversion in os.listdir('binary'):
+    sys.path.append('binary/' + pyversion)
+import bridge_tracer
 
 def make_mock_tracer(scope_manager = None):
     traces_path = os.path.join(tempfile.mkdtemp(prefix='python-bridge-test.'), 'traces.json')

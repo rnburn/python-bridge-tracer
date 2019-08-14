@@ -1,5 +1,3 @@
-#include <iostream>
-
 #include <Python.h>
 
 #include "python_bridge_tracer/module.h"

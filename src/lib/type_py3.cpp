@@ -1,8 +1,9 @@
 #include "python_bridge_tracer/type.h"
-#include "python_bridge_tracer/version.h"
 
 #include <cassert>
 #include <vector>
+
+#include "python_bridge_tracer/version.h"
 
 #ifdef PYTHON_BRIDGE_TRACER_PY3
 

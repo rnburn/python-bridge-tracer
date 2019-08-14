@@ -20,7 +20,9 @@ class PythonStringWrapper {
     */
   bool error() const noexcept { return data_ == nullptr; }
 
-  operator opentracing::string_view() const noexcept;
+  operator opentracing::string_view() const noexcept {
+    return opentracing::string_view{data_, static_cast<size_t>(length_)};
+  }
 
  private:
   PythonObjectWrapper utf8_;

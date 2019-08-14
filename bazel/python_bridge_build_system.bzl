@@ -68,7 +68,7 @@ def python_bridge_cc_library(name,
                      data = [],
                      is_3rd_party = False,
                      strip_include_prefix = None):
-  for version, tag in [("3", ""), ("27", "m")]:
+  for version, tag in [("3", ""), ("27", "m"), ("27", "mu")]:
     suffix = version + tag
     external_deps_prime = external_deps + [
       "@com_github_python_cpython%s//:cpython_header_lib" % version,
@@ -145,18 +145,19 @@ def python_bridge_test(
         name,
         args = [],
         srcs = [],
+        main = None,
         data = [],
         testonly = 0,
         visibility = None,
         external_deps = [],
+        python_version = "PY3",
         deps = []):
   native.py_test(
         name = name,
         args = args,
         srcs = srcs,
-        srcs_version = "PY3ONLY",
-        default_python_version = "PY3",
-        python_version = "PY3",
+        main = main,
+        python_version = python_version,
         data = data,
         testonly = testonly,
         visibility = visibility,

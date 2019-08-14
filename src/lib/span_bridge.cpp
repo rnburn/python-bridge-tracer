@@ -11,16 +11,8 @@ namespace python_bridge_tracer {
 //--------------------------------------------------------------------------------------------------
 static bool setStringTag(opentracing::Span& span, opentracing::string_view key,
     PyObject* value) noexcept {
-  PythonObjectWrapper utf8 = PyUnicode_AsUTF8String(value);
-  if (utf8.error()) {
-    return false;
-  }
-  char* s;
-  auto rcode = PyBytes_AsStringAndSize(utf8, &s, nullptr);
-  if (rcode == -1) {
-    return false;
-  }
-  span.SetTag(key, s);
+  PythonStringWrapper s{value};
+  span.SetTag(key, static_cast<opentracing::string_view>(s));
   return true;
 }
 
@@ -67,14 +59,14 @@ bool SpanBridge::setOperationName(PyObject* args,
 //--------------------------------------------------------------------------------------------------
 bool SpanBridge::setTagKeyValue(opentracing::string_view key, PyObject* value) noexcept {
   opentracing::Value cpp_value;
-  if (PyUnicode_Check(value) == 1) {
+  if (isString(value)) {
     return setStringTag(*span_, key, value);
   }
   if (PyBool_Check(value) == 1) {
     cpp_value = static_cast<bool>(PyObject_IsTrue(value));
-  } else if (PyLong_Check(value) == 1) {
-    auto long_value = PyLong_AsLong(value);
-    if (long_value == -1 && PyErr_Occurred() != nullptr) {
+  } else if (isInt(value)) {
+    long long_value;
+    if (!toLong(value, long_value)) {
       return false;
     }
     cpp_value = long_value;
@@ -94,7 +86,7 @@ bool SpanBridge::setTagKeyValue(opentracing::string_view key, PyObject* value) n
 }
 
 bool SpanBridge::setTagKeyValue(PyObject* key, PyObject* value) noexcept {
-  if (PyUnicode_Check(key) != 1) {
+  if (!isString(key)) {
     PyErr_Format(PyExc_TypeError, "tag key must be a string");
     return false;
   }
@@ -240,7 +232,7 @@ PyObject* SpanBridge::getBaggageItem(PyObject* args, PyObject* keywords) noexcep
   if (value.empty()) {
     Py_RETURN_NONE;
   }
-  return PyUnicode_FromStringAndSize(value.data(), static_cast<Py_ssize_t>(value.size()));
+  return toPyString(value);
 }
 
 //--------------------------------------------------------------------------------------------------

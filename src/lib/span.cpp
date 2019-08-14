@@ -7,8 +7,6 @@
 #include "python_bridge_tracer/utility.h"
 #include "python_bridge_tracer/type.h"
 
-#include <iostream>
-
 static PyObject* SpanType;
 
 namespace python_bridge_tracer {

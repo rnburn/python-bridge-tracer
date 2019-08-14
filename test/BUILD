@@ -9,12 +9,13 @@ load(
 python_bridge_package()
 
 python_bridge_test(
-    name = "tracer_test",
+    name = "tracer_test_py3",
     srcs = [
         "tracer_test.py",
     ],
+    main = "tracer_test.py",
     data = [
-        "//:bridge_tracer.so",
+        "//binary/py3:bridge_tracer.so",
         "@io_opentracing_cpp//mocktracer:libmocktracer_plugin.so",
     ],
     deps = [
@@ -22,7 +23,18 @@ python_bridge_test(
     ],
 )
 
-py_runtime(
-    name = "python-3.6.0",
-    interpreter_path = "/usr/bin/python3",
+python_bridge_test(
+    name = "tracer_test_py27",
+    srcs = [
+        "tracer_test.py",
+    ],
+    main = "tracer_test.py",
+    data = [
+        "//binary/py27mu:bridge_tracer.so",
+        "@io_opentracing_cpp//mocktracer:libmocktracer_plugin.so",
+    ],
+    python_version = "PY2",
+    deps = [
+        requirement("opentracing"),
+    ],
 )

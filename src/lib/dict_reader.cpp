@@ -2,6 +2,7 @@
 
 #include "python_bridge_tracer/python_object_wrapper.h"
 #include "python_bridge_tracer/python_string_wrapper.h"
+#include "python_bridge_tracer/utility.h"
 #include "python_bridge_error.h"
 
 namespace python_bridge_tracer {
@@ -16,8 +17,7 @@ DictReader:: DictReader(PyObject* dict) noexcept
 //--------------------------------------------------------------------------------------------------
 opentracing::expected<opentracing::string_view> DictReader::LookupKey(
     opentracing::string_view key) const {
-  PythonObjectWrapper py_key =
-      PyUnicode_FromStringAndSize(key.data(), static_cast<Py_ssize_t>(key.size()));
+  PythonObjectWrapper py_key = toPyString(key);
   if (py_key.error()) {
     return opentracing::make_unexpected(python_error);
   }

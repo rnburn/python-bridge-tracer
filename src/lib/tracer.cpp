@@ -1,6 +1,5 @@
 #include "tracer.h"
 
-#include <iostream>
 #include <memory>
 
 #include "python_bridge_tracer/module.h"
@@ -140,6 +139,9 @@ static PyObject* startSpan(TracerObject* self, PyObject* args, PyObject* keyword
                                static_cast<size_t>(operation_name_length)},
       self->scope_manager, parent, references, tags, start_time,
       static_cast<bool>(ignore_active_span));
+  if (span_bridge == nullptr) {
+    return nullptr;
+  }
   return makeSpan(std::move(span_bridge), reinterpret_cast<PyObject*>(self));
 }
 
