@@ -2,15 +2,16 @@
 
 #include <cassert>
 
+#include "python_bridge_tracer/constant.h"
 #include "python_bridge_tracer/utility.h"
 #include "python_bridge_tracer/python_object_wrapper.h"
 #include "python_bridge_tracer/python_string_wrapper.h"
 
 namespace python_bridge_tracer {
 //--------------------------------------------------------------------------------------------------
-// unicodeToString
+// pyStringToString
 //--------------------------------------------------------------------------------------------------
-static bool unicodeToString(PyObject* object, std::string& result) noexcept {
+static bool pyStringToString(PyObject* object, std::string& result) noexcept {
   PythonStringWrapper str{object};
   if (str.error()) {
     return false;
@@ -24,7 +25,7 @@ static bool unicodeToString(PyObject* object, std::string& result) noexcept {
 // convertToString
 //--------------------------------------------------------------------------------------------------
 static bool convertToString(PyObject* object, std::string& result) noexcept {
-  PythonObjectWrapper str_function = getModuleAttribute("builtins", "str");
+  PythonObjectWrapper str_function = getModuleAttribute(BuiltinModule, "str");
   if (str_function.error()) {
     return false;
   }
@@ -36,15 +37,15 @@ static bool convertToString(PyObject* object, std::string& result) noexcept {
   if (str_result.error()) {
     return false;
   }
-  return unicodeToString(str_result, result);
+  return pyStringToString(str_result, result);
 }
 
 //--------------------------------------------------------------------------------------------------
 // toString
 //--------------------------------------------------------------------------------------------------
 bool toString(PyObject* object, std::string& result) noexcept {
-  if(PyUnicode_Check(object) == 1) {
-    return unicodeToString(object, result);
+  if(isString(object)) {
+    return pyStringToString(object, result);
   }
   if (PyBytes_Check(object) == 1) {
     char* data;

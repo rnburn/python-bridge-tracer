@@ -10,7 +10,7 @@ git_repository(
 )
 
 http_archive(
-    name = "com_github_python_cpython",
+    name = "com_github_python_cpython3",
     build_file = "//bazel:cpython.BUILD",
     strip_prefix = "cpython-3.7.3",
     urls = [
@@ -18,10 +18,31 @@ http_archive(
     ],
 )
 
+http_archive(
+    name = "com_github_python_cpython27",
+    build_file = "//bazel:cpython.BUILD",
+    strip_prefix = "cpython-2.7.16",
+    urls = [
+        "https://github.com/python/cpython/archive/v2.7.16.tar.gz",
+    ],
+)
+
 new_local_repository(
-    name = "vendored_pyconfig",
+    name = "vendored_pyconfig3",
     path = ".",
-    build_file = "//bazel:vendored_pyconfig.BUILD",
+    build_file = "//bazel:vendored_pyconfig3.BUILD",
+)
+
+new_local_repository(
+    name = "vendored_pyconfig27m",
+    path = ".",
+    build_file = "//bazel:vendored_pyconfig27m.BUILD",
+)
+
+new_local_repository(
+    name = "vendored_pyconfig27mu",
+    path = ".",
+    build_file = "//bazel:vendored_pyconfig27mu.BUILD",
 )
 
 git_repository(

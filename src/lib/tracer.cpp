@@ -1,6 +1,5 @@
 #include "tracer.h"
 
-#include <iostream>
 #include <memory>
 
 #include "python_bridge_tracer/module.h"
@@ -10,6 +9,7 @@
 #include "tracer_bridge.h"
 #include "span.h"
 #include "python_bridge_tracer/utility.h"
+#include "python_bridge_tracer/type.h"
 
 static PyObject* TracerType;
 
@@ -33,7 +33,7 @@ struct TracerObject {
 static void deallocTracer(TracerObject* self) noexcept {
   delete self->tracer_bridge;
   Py_DECREF(self->scope_manager);
-  PyObject_Free(static_cast<void*>(self));
+  freeSelf(reinterpret_cast<PyObject*>(self));
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -139,6 +139,9 @@ static PyObject* startSpan(TracerObject* self, PyObject* args, PyObject* keyword
                                static_cast<size_t>(operation_name_length)},
       self->scope_manager, parent, references, tags, start_time,
       static_cast<bool>(ignore_active_span));
+  if (span_bridge == nullptr) {
+    return nullptr;
+  }
   return makeSpan(std::move(span_bridge), reinterpret_cast<PyObject*>(self));
 }
 
@@ -228,28 +231,12 @@ static PyMethodDef TracerMethods[] = {
 // TracerGetSetList
 //--------------------------------------------------------------------------------------------------
 static PyGetSetDef TracerGetSetList[] = {
-    {"scope_manager", reinterpret_cast<getter>(getScopeManager), nullptr,
-     PyDoc_STR("Returns the attached ScopeManager")},
-    {"active_span", reinterpret_cast<getter>(getActiveSpan), nullptr,
-     PyDoc_STR("Returns the active span")},
+    {const_cast<char*>("scope_manager"),
+     reinterpret_cast<getter>(getScopeManager), nullptr,
+     const_cast<char*>(PyDoc_STR("Returns the attached ScopeManager"))},
+    {const_cast<char*>("active_span"), reinterpret_cast<getter>(getActiveSpan),
+     nullptr, const_cast<char*>(PyDoc_STR("Returns the active span"))},
     {nullptr}};
-
-//--------------------------------------------------------------------------------------------------
-// TracerTypeSlots
-//--------------------------------------------------------------------------------------------------
-static PyType_Slot TracerTypeSlots[] = {
-    {Py_tp_doc, toVoidPtr("CppBridgeTracer")},
-    {Py_tp_dealloc, toVoidPtr(deallocTracer)},
-    {Py_tp_methods, toVoidPtr(TracerMethods)},
-    {Py_tp_getset, toVoidPtr(TracerGetSetList)},
-    {0, nullptr}};
-
-//--------------------------------------------------------------------------------------------------
-// TracerTypeSpec
-//--------------------------------------------------------------------------------------------------
-static PyType_Spec TracerTypeSpec = {PYTHON_BRIDGE_TRACER_MODULE "._Tracer",
-                                     sizeof(TracerObject), 0,
-                                     Py_TPFLAGS_DEFAULT, TracerTypeSlots};
 
 //--------------------------------------------------------------------------------------------------
 // makeTracer
@@ -274,7 +261,7 @@ PyObject* makeTracer(std::shared_ptr<opentracing::Tracer> tracer,
   result->scope_manager = scope_manager;
   return reinterpret_cast<PyObject*>(result);
 } catch (const std::exception& e) {
-  PyErr_Format(PyExc_RuntimeError, e.what());
+  PyErr_Format(PyExc_RuntimeError, "%s", e.what());
   return nullptr;
 }
 
@@ -282,7 +269,14 @@ PyObject* makeTracer(std::shared_ptr<opentracing::Tracer> tracer,
 // setupTracerClass
 //--------------------------------------------------------------------------------------------------
 bool setupTracerClass(PyObject* module) noexcept {
-  auto tracer_type = PyType_FromSpec(&TracerTypeSpec);
+  TypeDescription type_description;
+  type_description.name = PYTHON_BRIDGE_TRACER_MODULE "._Tracer";
+  type_description.size = sizeof(TracerObject);
+  type_description.doc = toVoidPtr("CppBridgeTracer");
+  type_description.dealloc = toVoidPtr(deallocTracer);
+  type_description.methods = toVoidPtr(TracerMethods);
+  type_description.getset = toVoidPtr(TracerGetSetList);
+  auto tracer_type = makeType<TracerObject>(type_description);
   if (tracer_type == nullptr) {
     return false;
   }

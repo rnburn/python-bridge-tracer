@@ -5,6 +5,7 @@
 #include "python_bridge_tracer/module.h"
 
 #include "python_bridge_tracer/utility.h"
+#include "python_bridge_tracer/type.h"
 
 static PyObject* SpanContextType;
 
@@ -26,7 +27,7 @@ struct SpanContextObject {
 //--------------------------------------------------------------------------------------------------
 static void deallocSpanContext(SpanContextObject* self) noexcept {
   delete self->span_context_bridge;
-  PyObject_Free(static_cast<void*>(self));
+  freeSelf(reinterpret_cast<PyObject*>(self));
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -69,31 +70,21 @@ static PyObject* getBaggage(SpanContextObject* self, PyObject* /*ignored*/) noex
 // SpanContextGetSetList
 //--------------------------------------------------------------------------------------------------
 static PyGetSetDef SpanContextGetSetList[] = {
-    {"baggage", reinterpret_cast<getter>(getBaggage), nullptr,
-     PyDoc_STR("return the context's baggage")},
+    {const_cast<char*>("baggage"), reinterpret_cast<getter>(getBaggage), nullptr,
+     const_cast<char*>(PyDoc_STR("return the context's baggage"))},
     {nullptr}};
-
-//--------------------------------------------------------------------------------------------------
-// SpanContextTypeSlots
-//--------------------------------------------------------------------------------------------------
-static PyType_Slot SpanContextTypeSlots[] = {
-    {Py_tp_doc, toVoidPtr("CppBridgeSpanContext")},
-    {Py_tp_dealloc, toVoidPtr(deallocSpanContext)},
-    {Py_tp_getset, toVoidPtr(SpanContextGetSetList)},
-    {0, nullptr}};
-
-//--------------------------------------------------------------------------------------------------
-// SpanContextTypeSpec
-//--------------------------------------------------------------------------------------------------
-static PyType_Spec SpanContextTypeSpec = {PYTHON_BRIDGE_TRACER_MODULE "._SpanContext",
-                                     sizeof(SpanContextObject), 0,
-                                     Py_TPFLAGS_DEFAULT, SpanContextTypeSlots};
 
 //--------------------------------------------------------------------------------------------------
 // setupSpanContextClass
 //--------------------------------------------------------------------------------------------------
 bool setupSpanContextClass(PyObject* module) noexcept {
-  auto span_context_type = PyType_FromSpec(&SpanContextTypeSpec);
+  TypeDescription type_description;
+  type_description.name = PYTHON_BRIDGE_TRACER_MODULE "._SpanContext";
+  type_description.size = sizeof(SpanContextObject);
+  type_description.doc = toVoidPtr("CppBridgeSpanContext");
+  type_description.dealloc = toVoidPtr(deallocSpanContext);
+  type_description.getset = toVoidPtr(SpanContextGetSetList);
+  auto span_context_type = makeType<SpanContextObject>(type_description);
   if (span_context_type == nullptr) {
     return false;
   }

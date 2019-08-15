@@ -6,7 +6,4 @@ cc_library(
   ],
   includes = ["Include"],
   strip_include_prefix = "Include",
-  deps = [
-    "@vendored_pyconfig//:pyconfig_lib",
-  ],
 )

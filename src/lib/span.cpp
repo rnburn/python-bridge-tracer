@@ -5,8 +5,7 @@
 #include "span_bridge.h"
 #include "span_context.h"
 #include "python_bridge_tracer/utility.h"
-
-#include <iostream>
+#include "python_bridge_tracer/type.h"
 
 static PyObject* SpanType;
 
@@ -30,7 +29,7 @@ struct SpanObject {
 static void deallocSpan(SpanObject* self) noexcept {
   delete self->span_bridge;
   Py_DECREF(self->tracer);
-  PyObject_Free(static_cast<void*>(self));
+  freeSelf(reinterpret_cast<PyObject*>(self));
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -182,27 +181,11 @@ static PyMethodDef SpanMethods[] = {
 // SpanGetSetList
 //--------------------------------------------------------------------------------------------------
 static PyGetSetDef SpanGetSetList[] = {
-    {"context", reinterpret_cast<getter>(getContext), nullptr,
-     PyDoc_STR("Returns the span's context")},
-    {"tracer", reinterpret_cast<getter>(getTracer), nullptr,
-     PyDoc_STR("Returns the tracer used to create the span")},
+    {const_cast<char*>("context"), reinterpret_cast<getter>(getContext), nullptr,
+     const_cast<char*>(PyDoc_STR("Returns the span's context"))},
+    {const_cast<char*>("tracer"), reinterpret_cast<getter>(getTracer), nullptr,
+     const_cast<char*>(PyDoc_STR("Returns the tracer used to create the span"))},
     {nullptr}};
-
-//--------------------------------------------------------------------------------------------------
-// SpanTypeSlots
-//--------------------------------------------------------------------------------------------------
-static PyType_Slot SpanTypeSlots[] = {{Py_tp_doc, toVoidPtr("CppBridgeSpan")},
-                                      {Py_tp_dealloc, toVoidPtr(deallocSpan)},
-                                      {Py_tp_methods, toVoidPtr(SpanMethods)},
-                                      {Py_tp_getset, toVoidPtr(SpanGetSetList)},
-                                      {0, nullptr}};
-
-//--------------------------------------------------------------------------------------------------
-// SpanTypeSpec
-//--------------------------------------------------------------------------------------------------
-static PyType_Spec SpanTypeSpec = {PYTHON_BRIDGE_TRACER_MODULE "._Span",
-                                   sizeof(SpanObject), 0, Py_TPFLAGS_DEFAULT,
-                                   SpanTypeSlots};
 
 //--------------------------------------------------------------------------------------------------
 // startSpan
@@ -239,7 +222,15 @@ SpanContextBridge getSpanContextFromSpan(PyObject* object) noexcept {
 // setupSpanClass
 //--------------------------------------------------------------------------------------------------
 bool setupSpanClass(PyObject* module) noexcept {
-  auto span_type = PyType_FromSpec(&SpanTypeSpec);
+  TypeDescription type_description;
+  type_description.name =
+    PYTHON_BRIDGE_TRACER_MODULE "._Span";
+  type_description.size = sizeof(SpanObject);
+  type_description.doc = toVoidPtr("CppBridgeSpan");
+  type_description.dealloc = toVoidPtr(deallocSpan);
+  type_description.methods = toVoidPtr(SpanMethods);
+  type_description.getset = toVoidPtr(SpanGetSetList);
+  auto span_type = makeType<SpanObject>(type_description);
   if (span_type == nullptr) {
     return false;
   }

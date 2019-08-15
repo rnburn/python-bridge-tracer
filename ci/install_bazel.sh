@@ -2,7 +2,7 @@
 
 set -e
 
-[ -z "${BAZEL_VERSION}" ] && export BAZEL_VERSION="0.24.0"
+[ -z "${BAZEL_VERSION}" ] && export BAZEL_VERSION="0.28.1"
 
 apt-get update 
 apt-get install --no-install-recommends --no-install-suggests -y \

@@ -7,6 +7,16 @@
 #include <Python.h>
 #include <opentracing/tracer.h>
 
+#include "python_bridge_tracer/version.h"
+
+#ifdef PYTHON_BRIDGE_TRACER_PY3
+#define PYTHON_BRIDGE_TRACER_DEFINE_MODULE(NAME) PyMODINIT_FUNC PyInit_##NAME() noexcept
+#define PYTHON_BRIDGE_TRACER_MODULE_RETURN(VALUE) return VALUE
+#else
+#define PYTHON_BRIDGE_TRACER_DEFINE_MODULE(NAME) PyMODINIT_FUNC init##NAME() noexcept
+#define PYTHON_BRIDGE_TRACER_MODULE_RETURN(VALUE) return
+#endif
+
 namespace python_bridge_tracer {
 /**
  * Make an OpenTracing python tracer from a C++ tracer and a scope manager
@@ -32,4 +42,6 @@ void flush(opentracing::Tracer& tracer, std::chrono::microseconds timeout) noexc
  * @return true if successful
  */
 bool setupClasses(PyObject* module) noexcept;
+
+PyObject* makeModule(const char* name, const char* doc, PyMethodDef* methods) noexcept;
 } // namespace python_bridge_tracer

@@ -68,33 +68,28 @@ def python_bridge_cc_library(name,
                      data = [],
                      is_3rd_party = False,
                      strip_include_prefix = None):
-  native.cc_library(
-      name = name,
-      srcs = srcs + private_hdrs,
-      hdrs = hdrs,
-      copts = python_bridge_include_copts() + python_bridge_copts(is_3rd_party) + copts,
-      linkopts = linkopts,
-      includes = includes,
-      deps = external_deps + deps,
-      data = data,
-      linkstatic = 1,
-      include_prefix = python_bridge_include_prefix(native.package_name()),
-      visibility = visibility,
-      strip_include_prefix = strip_include_prefix,
-  )
-
-# wrapper to make derived header-only libraries. See 
-# https://github.com/bazelbuild/rules_foreign_cc/issues/244#issuecomment-492864157
-def python_bridge_derived_headeronly_library(
-        name,
-        hdrs = [],
-        includes = []):
+  for version, tag in [("3", ""), ("27", "m"), ("27", "mu")]:
+    suffix = version + tag
+    external_deps_prime = external_deps + [
+      "@com_github_python_cpython%s//:cpython_header_lib" % version,
+      "@vendored_pyconfig%s//:pyconfig_lib" % suffix,
+    ]
+    name_prime = name + "_py" + suffix
+    deps_prime = [dep + "_py" + suffix for dep in deps]
     native.cc_library(
-      name = name,
-      hdrs = hdrs,
-      copts = python_bridge_private_include_copts(includes, True),
+        name = name_prime,
+        srcs = srcs + private_hdrs,
+        hdrs = hdrs,
+        copts = python_bridge_include_copts() + python_bridge_copts(is_3rd_party) + copts,
+        linkopts = linkopts,
+        includes = includes,
+        deps = external_deps_prime + deps_prime,
+        data = data,
+        linkstatic = 1,
+        include_prefix = python_bridge_include_prefix(native.package_name()),
+        visibility = visibility,
+        strip_include_prefix = strip_include_prefix,
     )
-  
 
 def python_bridge_cc_binary(
         name,
@@ -150,18 +145,19 @@ def python_bridge_test(
         name,
         args = [],
         srcs = [],
+        main = None,
         data = [],
         testonly = 0,
         visibility = None,
         external_deps = [],
+        python_version = "PY3",
         deps = []):
   native.py_test(
         name = name,
         args = args,
         srcs = srcs,
-        srcs_version = "PY3ONLY",
-        default_python_version = "PY3",
-        python_version = "PY3",
+        main = main,
+        python_version = python_version,
         data = data,
         testonly = testonly,
         visibility = visibility,

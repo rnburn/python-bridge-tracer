@@ -98,10 +98,12 @@ static bool addActiveSpanReference(
 static bool getReferenceType(
     PyObject* reference_type,
     opentracing::SpanReferenceType& cpp_reference_type) noexcept {
-  if (PyUnicode_Check(reference_type) == 0) {
+  if (!isString(reference_type)) {
     PyErr_Format(PyExc_TypeError, "reference_type must be a string");
     return false;
   }
+  cpp_reference_type = opentracing::SpanReferenceType::ChildOfRef;
+  return true;
   PythonStringWrapper reference_type_str{reference_type};
   if (reference_type_str.error()) {
     return false;
@@ -232,11 +234,11 @@ static void setPropagationError(std::error_code error_code) noexcept {
       if (exception.error()) {
         return;
       }
-      PyErr_Format(exception, error_code.message().c_str());
+      PyErr_Format(exception, "%s", error_code.message().c_str());
       return;
     }
   }
-  PyErr_Format(PyExc_RuntimeError, error_code.message().c_str());
+  PyErr_Format(PyExc_RuntimeError, "%s", error_code.message().c_str());
 }
 
 //--------------------------------------------------------------------------------------------------
