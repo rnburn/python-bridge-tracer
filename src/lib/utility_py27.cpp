@@ -33,6 +33,11 @@ bool toLong(PyObject* obj, long& value) noexcept {
 PyObject* toPyString(opentracing::string_view s) noexcept {
   return PyString_FromStringAndSize(s.data(), static_cast<Py_ssize_t>(s.size()));
 }
+
+//--------------------------------------------------------------------------------------------------
+// freeSelf
+//--------------------------------------------------------------------------------------------------
+void freeSelf(PyObject* self) noexcept { Py_TYPE(self)->tp_free(self); }
 } // namespace python_bridge_tracer
 
 #endif 

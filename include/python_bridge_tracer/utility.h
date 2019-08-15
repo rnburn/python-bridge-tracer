@@ -89,4 +89,10 @@ bool toLong(PyObject* obj, long& value) noexcept;
  * @return a Python string object
  */
 PyObject* toPyString(opentracing::string_view s) noexcept;
+
+/**
+ * Frees a class object
+ * @param self the class object to free
+ */
+void freeSelf(PyObject* self) noexcept;
 }  // namespace python_bridge_tracer
