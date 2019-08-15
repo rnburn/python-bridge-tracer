@@ -52,6 +52,7 @@ PYTHON_BRIDGE_TRACER_DEFINE_MODULE(bridge_tracer) {
     PYTHON_BRIDGE_TRACER_MODULE_RETURN(nullptr);
   }
   if (!setupClasses(module)) {
+    Py_DECREF(module);
     PYTHON_BRIDGE_TRACER_MODULE_RETURN(nullptr);
   }
   PYTHON_BRIDGE_TRACER_MODULE_RETURN(module);
