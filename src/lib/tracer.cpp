@@ -1,12 +1,12 @@
 #include "tracer.h"
 
 #include <memory>
+#include <iostream>
 
 #include "python_bridge_tracer/module.h"
 
 #include "python_bridge_tracer/python_object_wrapper.h"
 #include "opentracing_module.h"
-#include "tracer_bridge.h"
 #include "span.h"
 #include "python_bridge_tracer/utility.h"
 #include "python_bridge_tracer/type.h"
@@ -14,19 +14,6 @@
 static PyObject* TracerType;
 
 namespace python_bridge_tracer {
-//--------------------------------------------------------------------------------------------------
-// TracerObject
-//--------------------------------------------------------------------------------------------------
-namespace {
-struct TracerObject {
-  // clang-format off
-  PyObject_HEAD
-  TracerBridge* tracer_bridge;
-  PyObject* scope_manager;
-  // clang-format on
-};
-}  // namespace
-
 //--------------------------------------------------------------------------------------------------
 // deallocTracer
 //--------------------------------------------------------------------------------------------------
@@ -208,35 +195,61 @@ static PyObject* getActiveSpan(TracerObject* self, void* /*ignored*/) noexcept {
 }
 
 //--------------------------------------------------------------------------------------------------
-// TracerMethods
+// makeTypeDescription
 //--------------------------------------------------------------------------------------------------
-static PyMethodDef TracerMethods[] = {
-    {"start_span", reinterpret_cast<PyCFunction>(startSpan),
-     METH_VARARGS | METH_KEYWORDS, PyDoc_STR("start a span")},
-    {"start_active_span", reinterpret_cast<PyCFunction>(startActiveSpan),
-     METH_VARARGS | METH_KEYWORDS, PyDoc_STR("start and activate a span")},
-    {"inject", reinterpret_cast<PyCFunction>(inject),
-     METH_VARARGS | METH_KEYWORDS,
-     PyDoc_STR("injects a span's context into a carrier")},
-    {"extract", reinterpret_cast<PyCFunction>(extract),
-     METH_VARARGS | METH_KEYWORDS,
-     PyDoc_STR("extracts a span's context from a carrier")},
-    {"close", reinterpret_cast<PyCFunction>(close), METH_VARARGS,
-     PyDoc_STR("close tracer")},
-    {"flush", reinterpret_cast<PyCFunction>(flushPython),
-     METH_VARARGS | METH_KEYWORDS, PyDoc_STR("flush a tracer")},
-    {nullptr, nullptr}};
+static TypeDescription makeTypeDescription(
+    const std::vector<PyMethodDef>& extension_methods,
+    const std::vector<PyGetSetDef>& extension_getsets) noexcept {
+  static int call_counter = 0;
+  if (++call_counter > 1) {
+    std::cerr << "makeTypeDescription may only be called once\n";
+    std::terminate();
+  }
 
-//--------------------------------------------------------------------------------------------------
-// TracerGetSetList
-//--------------------------------------------------------------------------------------------------
-static PyGetSetDef TracerGetSetList[] = {
-    {const_cast<char*>("scope_manager"),
-     reinterpret_cast<getter>(getScopeManager), nullptr,
-     const_cast<char*>(PyDoc_STR("Returns the attached ScopeManager"))},
-    {const_cast<char*>("active_span"), reinterpret_cast<getter>(getActiveSpan),
-     nullptr, const_cast<char*>(PyDoc_STR("Returns the active span"))},
-    {nullptr}};
+  // make methods
+  static std::vector<PyMethodDef> tracer_methods = {
+      {"start_span", reinterpret_cast<PyCFunction>(startSpan),
+       METH_VARARGS | METH_KEYWORDS, PyDoc_STR("start a span")},
+      {"start_active_span", reinterpret_cast<PyCFunction>(startActiveSpan),
+       METH_VARARGS | METH_KEYWORDS, PyDoc_STR("start and activate a span")},
+      {"inject", reinterpret_cast<PyCFunction>(inject),
+       METH_VARARGS | METH_KEYWORDS,
+       PyDoc_STR("injects a span's context into a carrier")},
+      {"extract", reinterpret_cast<PyCFunction>(extract),
+       METH_VARARGS | METH_KEYWORDS,
+       PyDoc_STR("extracts a span's context from a carrier")},
+      {"close", reinterpret_cast<PyCFunction>(close), METH_VARARGS,
+       PyDoc_STR("close tracer")},
+      {"flush", reinterpret_cast<PyCFunction>(flushPython),
+       METH_VARARGS | METH_KEYWORDS, PyDoc_STR("flush a tracer")}};
+  for (auto method : extension_methods) {
+    tracer_methods.emplace_back(method);
+  }
+  tracer_methods.emplace_back(PyMethodDef{nullptr, nullptr});
+
+  // make getsets
+  static std::vector<PyGetSetDef> tracer_getsets = {
+      {const_cast<char*>("scope_manager"),
+       reinterpret_cast<getter>(getScopeManager), nullptr,
+       const_cast<char*>(PyDoc_STR("Returns the attached ScopeManager"))},
+      {const_cast<char*>("active_span"),
+       reinterpret_cast<getter>(getActiveSpan), nullptr,
+       const_cast<char*>(PyDoc_STR("Returns the active span"))}};
+  for (auto getset : extension_getsets) {
+    tracer_getsets.emplace_back(getset);
+  }
+  tracer_getsets.emplace_back(PyGetSetDef{nullptr});
+
+  // make type description
+  TypeDescription result;
+  result.name = PYTHON_BRIDGE_TRACER_MODULE "._Tracer";
+  result.size = sizeof(TracerObject);
+  result.doc = toVoidPtr("CppBridgeTracer");
+  result.dealloc = toVoidPtr(deallocTracer);
+  result.methods = toVoidPtr(tracer_methods.data());
+  result.getset = toVoidPtr(tracer_getsets.data());
+  return result;
+}
 
 //--------------------------------------------------------------------------------------------------
 // makeTracer
@@ -268,14 +281,10 @@ PyObject* makeTracer(std::shared_ptr<opentracing::Tracer> tracer,
 //--------------------------------------------------------------------------------------------------
 // setupTracerClass
 //--------------------------------------------------------------------------------------------------
-bool setupTracerClass(PyObject* module) noexcept {
-  TypeDescription type_description;
-  type_description.name = PYTHON_BRIDGE_TRACER_MODULE "._Tracer";
-  type_description.size = sizeof(TracerObject);
-  type_description.doc = toVoidPtr("CppBridgeTracer");
-  type_description.dealloc = toVoidPtr(deallocTracer);
-  type_description.methods = toVoidPtr(TracerMethods);
-  type_description.getset = toVoidPtr(TracerGetSetList);
+bool setupTracerClass(PyObject* module,
+    const std::vector<PyMethodDef>& extension_methods,
+    const std::vector<PyGetSetDef>& extension_getsets) noexcept {
+  auto type_description = makeTypeDescription(extension_methods, extension_getsets);
   auto tracer_type = makeType<TracerObject>(type_description);
   if (tracer_type == nullptr) {
     return false;

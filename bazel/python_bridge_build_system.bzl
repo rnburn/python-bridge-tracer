@@ -45,6 +45,7 @@ def python_bridge_copts(is_3rd_party=False):
       "-Wold-style-cast",
       "-Wno-overloaded-virtual",
       "-Wno-missing-field-initializers",
+      "-Wno-noexcept-type",
       "-Wvla",
       "-std=c++11",
   ]
