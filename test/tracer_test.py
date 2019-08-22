@@ -30,6 +30,18 @@ class TestTracer(unittest.TestCase):
         self.assertEqual(len(spans), 1)
         self.assertEqual(spans[0]['operation_name'], 'abc')
 
+    def test_start_span_none(self):
+        tracer, traces_path = make_mock_tracer()
+        span = tracer.start_span('abc', \
+                                 child_of=None, \
+                                 references=None, \
+                                 tags=None)
+        span.finish()
+        tracer.close()
+        spans = read_spans(traces_path)
+        self.assertEqual(len(spans), 1)
+        self.assertEqual(spans[0]['operation_name'], 'abc')
+
     def test_start_span_with_reference1(self):
         tracer, traces_path = make_mock_tracer()
         spanA = tracer.start_span('A')
