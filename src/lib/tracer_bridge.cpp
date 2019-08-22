@@ -43,7 +43,7 @@ static bool addParentReference(
     PyObject* parent,
     std::vector<std::pair<opentracing::SpanReferenceType, SpanContextBridge>>&
         cpp_references) noexcept {
-  if (parent == nullptr) {
+  if (parent == nullptr || parent == Py_None) {
     return true;
   }
   if (isSpanContext(parent)) {
