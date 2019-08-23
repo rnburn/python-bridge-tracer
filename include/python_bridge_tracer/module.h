@@ -45,9 +45,14 @@ void flush(opentracing::Tracer& tracer, std::chrono::microseconds timeout) noexc
 /**
  * Setup the OpenTracing python classes.
  * @param module the module to add the classes to
+ * @param tracer_extension_methods additional methods a vendor tracer can add
+ * @param tracer_extension_getsets additional getsets a vendor tracer can add
  * @return true if successful
  */
-bool setupClasses(PyObject* module) noexcept;
+bool setupClasses(
+    PyObject* module,
+    const std::vector<PyMethodDef>& tracer_extension_methods = {},
+    const std::vector<PyGetSetDef>& tracer_extension_getsets = {}) noexcept;
 
 PyObject* makeModule(const char* name, const char* doc, PyMethodDef* methods) noexcept;
 } // namespace python_bridge_tracer

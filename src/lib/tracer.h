@@ -13,6 +13,6 @@ namespace python_bridge_tracer {
  * @return true if successful
  */
 bool setupTracerClass(
-    PyObject* module, const std::vector<PyMethodDef>& extension_methods = {},
-    const std::vector<PyGetSetDef>& extension_getsets = {}) noexcept;
+    PyObject* module, const std::vector<PyMethodDef>& extension_methods,
+    const std::vector<PyGetSetDef>& extension_getsets) noexcept;
 }  // namespace python_bridge_tracer
