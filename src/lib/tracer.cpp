@@ -1,19 +1,33 @@
 #include "tracer.h"
 
-#include <memory>
 #include <iostream>
+#include <memory>
 
 #include "python_bridge_tracer/module.h"
 
-#include "python_bridge_tracer/python_object_wrapper.h"
 #include "opentracing_module.h"
-#include "span.h"
-#include "python_bridge_tracer/utility.h"
+#include "python_bridge_tracer/python_object_wrapper.h"
 #include "python_bridge_tracer/type.h"
+#include "python_bridge_tracer/utility.h"
+#include "span.h"
+#include "tracer_bridge.h"
 
 static PyObject* TracerType;
 
 namespace python_bridge_tracer {
+//--------------------------------------------------------------------------------------------------
+// TracerObject
+//--------------------------------------------------------------------------------------------------
+namespace {
+struct TracerObject {
+  // clang-format off
+  PyObject_HEAD
+  TracerBridge* tracer_bridge;
+  PyObject* scope_manager;
+  // clang-format on
+};
+}  // namespace
+
 //--------------------------------------------------------------------------------------------------
 // deallocTracer
 //--------------------------------------------------------------------------------------------------
@@ -26,12 +40,14 @@ static void deallocTracer(TracerObject* self) noexcept {
 //--------------------------------------------------------------------------------------------------
 // activateSpan
 //--------------------------------------------------------------------------------------------------
-static PyObject* activateSpan(TracerObject* self, PyObject* span, int finish_on_close) noexcept {
+static PyObject* activateSpan(TracerObject* self, PyObject* span,
+                              int finish_on_close) noexcept {
   PythonObjectWrapper args = Py_BuildValue("Oi", span, finish_on_close);
   if (args.error()) {
     return nullptr;
   }
-  PythonObjectWrapper activate_function = PyObject_GetAttrString(self->scope_manager, "activate");
+  PythonObjectWrapper activate_function =
+      PyObject_GetAttrString(self->scope_manager, "activate");
   if (activate_function.error()) {
     return nullptr;
   }
@@ -41,17 +57,16 @@ static PyObject* activateSpan(TracerObject* self, PyObject* span, int finish_on_
 //--------------------------------------------------------------------------------------------------
 // startActiveSpan
 //--------------------------------------------------------------------------------------------------
-static PyObject* startActiveSpan(TracerObject* self, PyObject* args, PyObject* keywords) noexcept {
-  static char* keyword_names[] = {
-    const_cast<char*>("operation_name"),
-    const_cast<char*>("child_of"),
-    const_cast<char*>("references"),
-    const_cast<char*>("tags"),
-    const_cast<char*>("start_time"),
-    const_cast<char*>("ignore_active_span"),
-    const_cast<char*>("finish_on_close"),
-    nullptr
-  };
+static PyObject* startActiveSpan(TracerObject* self, PyObject* args,
+                                 PyObject* keywords) noexcept {
+  static char* keyword_names[] = {const_cast<char*>("operation_name"),
+                                  const_cast<char*>("child_of"),
+                                  const_cast<char*>("references"),
+                                  const_cast<char*>("tags"),
+                                  const_cast<char*>("start_time"),
+                                  const_cast<char*>("ignore_active_span"),
+                                  const_cast<char*>("finish_on_close"),
+                                  nullptr};
   const char* operation_name = nullptr;
   int operation_name_length = 0;
   PyObject* parent = nullptr;
@@ -68,7 +83,7 @@ static PyObject* startActiveSpan(TracerObject* self, PyObject* args, PyObject* k
       "O"  // tags
       "d"  // start_time
       "p"  // ignore_active_span
-      "p" // finish_on_close
+      "p"  // finish_on_close
       ":start_active_span";
   if (PyArg_ParseTupleAndKeywords(
           args, keywords, arguments_format, keyword_names, &operation_name,
@@ -92,13 +107,15 @@ static PyObject* startActiveSpan(TracerObject* self, PyObject* args, PyObject* k
 //--------------------------------------------------------------------------------------------------
 // startSpan
 //--------------------------------------------------------------------------------------------------
-static PyObject* startSpan(TracerObject* self, PyObject* args, PyObject* keywords) noexcept {
+static PyObject* startSpan(TracerObject* self, PyObject* args,
+                           PyObject* keywords) noexcept {
   static char* keyword_names[] = {const_cast<char*>("operation_name"),
                                   const_cast<char*>("child_of"),
                                   const_cast<char*>("references"),
                                   const_cast<char*>("tags"),
                                   const_cast<char*>("start_time"),
-                                  const_cast<char*>("ignore_active_span"), nullptr};
+                                  const_cast<char*>("ignore_active_span"),
+                                  nullptr};
   const char* operation_name = nullptr;
   int operation_name_length = 0;
   PyObject* parent = nullptr;
@@ -115,10 +132,10 @@ static PyObject* startSpan(TracerObject* self, PyObject* args, PyObject* keyword
       "d"  // start_time
       "p"  // ignore_active_span
       ":start_span";
-  if (PyArg_ParseTupleAndKeywords(args, keywords, arguments_format,
-                                   keyword_names, &operation_name,
-                                   &operation_name_length, &parent, &references,
-                                   &tags, &start_time, &ignore_active_span) == 0) {
+  if (PyArg_ParseTupleAndKeywords(
+          args, keywords, arguments_format, keyword_names, &operation_name,
+          &operation_name_length, &parent, &references, &tags, &start_time,
+          &ignore_active_span) == 0) {
     return nullptr;
   }
   auto span_bridge = self->tracer_bridge->makeSpan(
@@ -135,14 +152,16 @@ static PyObject* startSpan(TracerObject* self, PyObject* args, PyObject* keyword
 //--------------------------------------------------------------------------------------------------
 // inject
 //--------------------------------------------------------------------------------------------------
-static PyObject* inject(TracerObject* self, PyObject* args, PyObject* keywords) noexcept {
+static PyObject* inject(TracerObject* self, PyObject* args,
+                        PyObject* keywords) noexcept {
   return self->tracer_bridge->inject(args, keywords);
 }
 
 //--------------------------------------------------------------------------------------------------
 // extract
 //--------------------------------------------------------------------------------------------------
-static PyObject* extract(TracerObject* self, PyObject* args, PyObject* keywords) noexcept {
+static PyObject* extract(TracerObject* self, PyObject* args,
+                         PyObject* keywords) noexcept {
   return self->tracer_bridge->extract(args, keywords);
 }
 
@@ -175,7 +194,8 @@ static PyObject* flushPython(TracerObject* self, PyObject* args,
 //--------------------------------------------------------------------------------------------------
 // getScopeManager
 //--------------------------------------------------------------------------------------------------
-static PyObject* getScopeManager(TracerObject* self, void* /*ignored*/) noexcept {
+static PyObject* getScopeManager(TracerObject* self,
+                                 void* /*ignored*/) noexcept {
   Py_INCREF(self->scope_manager);
   return self->scope_manager;
 }
@@ -184,7 +204,8 @@ static PyObject* getScopeManager(TracerObject* self, void* /*ignored*/) noexcept
 // getActiveSpan
 //--------------------------------------------------------------------------------------------------
 static PyObject* getActiveSpan(TracerObject* self, void* /*ignored*/) noexcept {
-  PythonObjectWrapper scope = PyObject_GetAttrString(self->scope_manager, "active");
+  PythonObjectWrapper scope =
+      PyObject_GetAttrString(self->scope_manager, "active");
   if (scope.error()) {
     return nullptr;
   }
@@ -279,12 +300,21 @@ PyObject* makeTracer(std::shared_ptr<opentracing::Tracer> tracer,
 }
 
 //--------------------------------------------------------------------------------------------------
+// extractTracer
+//--------------------------------------------------------------------------------------------------
+opentracing::Tracer& extractTracer(PyObject* tracer_object) noexcept {
+  return reinterpret_cast<TracerObject*>(tracer_object)
+      ->tracer_bridge->tracer();
+}
+
+//--------------------------------------------------------------------------------------------------
 // setupTracerClass
 //--------------------------------------------------------------------------------------------------
-bool setupTracerClass(PyObject* module,
-    const std::vector<PyMethodDef>& extension_methods,
+bool setupTracerClass(
+    PyObject* module, const std::vector<PyMethodDef>& extension_methods,
     const std::vector<PyGetSetDef>& extension_getsets) noexcept {
-  auto type_description = makeTypeDescription(extension_methods, extension_getsets);
+  auto type_description =
+      makeTypeDescription(extension_methods, extension_getsets);
   auto tracer_type = makeType<TracerObject>(type_description);
   if (tracer_type == nullptr) {
     return false;
@@ -293,4 +323,4 @@ bool setupTracerClass(PyObject* module,
   auto rcode = PyModule_AddObject(module, "_Tracer", tracer_type);
   return rcode == 0;
 }
-} // namespace python_bridge_tracer
+}  // namespace python_bridge_tracer

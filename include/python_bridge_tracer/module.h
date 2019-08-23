@@ -19,6 +19,12 @@
 
 namespace python_bridge_tracer {
 /**
+ * Extract opentracing::Tracer from its python object wrapper
+ * @return the extracted opentracing::Tracer
+ */
+opentracing::Tracer& extractTracer(PyObject* tracer_object) noexcept;
+
+/**
  * Make an OpenTracing python tracer from a C++ tracer and a scope manager
  * @param tracer the C++ tracer
  * @param scope_manager a scope manager object

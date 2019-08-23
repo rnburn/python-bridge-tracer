@@ -22,8 +22,6 @@ class DynamicSpanContext final : public opentracing::SpanContext {
     span_context_->ForeachBaggageItem(callback);
   }
 
-  const opentracing::SpanContext& context() const noexcept { return *span_context_; }
-
  private:
    std::shared_ptr<const opentracing::Tracer> tracer_;
    std::unique_ptr<opentracing::SpanContext> span_context_;
@@ -119,40 +117,24 @@ class DynamicTracer final : public opentracing::Tracer,
 
   opentracing::expected<void> Inject(const opentracing::SpanContext& sc,
                                      std::ostream& writer) const override {
-    auto span_context = dynamic_cast<const DynamicSpanContext*>(&sc);
-    if (span_context != nullptr) {
-      return tracer_->Inject(span_context->context(), writer);
-    }
     return tracer_->Inject(sc, writer);
   }
 
   opentracing::expected<void> Inject(
       const opentracing::SpanContext& sc,
       const opentracing::TextMapWriter& writer) const override {
-    auto span_context = dynamic_cast<const DynamicSpanContext*>(&sc);
-    if (span_context != nullptr) {
-      return tracer_->Inject(span_context->context(), writer);
-    }
     return tracer_->Inject(sc, writer);
   }
 
   opentracing::expected<void> Inject(
       const opentracing::SpanContext& sc,
       const opentracing::HTTPHeadersWriter& writer) const override {
-    auto span_context = dynamic_cast<const DynamicSpanContext*>(&sc);
-    if (span_context != nullptr) {
-      return tracer_->Inject(span_context->context(), writer);
-    }
     return tracer_->Inject(sc, writer);
   }
 
   opentracing::expected<void> Inject(
       const opentracing::SpanContext& sc,
       const opentracing::CustomCarrierWriter& writer) const override {
-    auto span_context = dynamic_cast<const DynamicSpanContext*>(&sc);
-    if (span_context != nullptr) {
-      return tracer_->Inject(span_context->context(), writer);
-    }
     return tracer_->Inject(sc, writer);
   }
 
