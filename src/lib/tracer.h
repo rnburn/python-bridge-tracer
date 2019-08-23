@@ -2,8 +2,6 @@
 
 #include <vector>
 
-#include "tracer_bridge.h"
-
 #include <Python.h>
 
 namespace python_bridge_tracer {
