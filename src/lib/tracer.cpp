@@ -15,6 +15,19 @@ static PyObject* TracerType;
 
 namespace python_bridge_tracer {
 //--------------------------------------------------------------------------------------------------
+// TracerObject
+//--------------------------------------------------------------------------------------------------
+namespace {
+struct TracerObject {
+  // clang-format off
+  PyObject_HEAD
+  TracerBridge* tracer_bridge;
+  PyObject* scope_manager;
+  // clang-format on
+};
+} //namespace
+
+//--------------------------------------------------------------------------------------------------
 // deallocTracer
 //--------------------------------------------------------------------------------------------------
 static void deallocTracer(TracerObject* self) noexcept {
@@ -276,6 +289,13 @@ PyObject* makeTracer(std::shared_ptr<opentracing::Tracer> tracer,
 } catch (const std::exception& e) {
   PyErr_Format(PyExc_RuntimeError, "%s", e.what());
   return nullptr;
+}
+
+//--------------------------------------------------------------------------------------------------
+// extractTracer
+//--------------------------------------------------------------------------------------------------
+opentracing::Tracer& extractTracer(PyObject* tracer_object) noexcept {
+  return reinterpret_cast<TracerObject*>(tracer_object)->tracer_bridge->tracer();
 }
 
 //--------------------------------------------------------------------------------------------------

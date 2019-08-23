@@ -272,19 +272,6 @@ class TestTracer(unittest.TestCase):
         span_context = tracer.extract(opentracing.Format.BINARY, carrier)
         self.assertIsNotNone(span_context)
 
-    def test_propagation3(self):
-        tracer, traces_path = make_mock_tracer()
-        span1 = tracer.start_span('abc')
-        carrier = bytearray()
-        tracer.inject(span1.context, opentracing.Format.BINARY, carrier)
-        self.assertTrue(len(carrier) >= 1)
-        span_context = tracer.extract(opentracing.Format.BINARY, carrier)
-        self.assertIsNotNone(span_context)
-        carrier = bytearray()
-        tracer.inject(span_context, opentracing.Format.BINARY, carrier)
-        span_context = tracer.extract(opentracing.Format.BINARY, carrier)
-        self.assertIsNotNone(span_context)
-
     def test_propagation_error(self):
         tracer, traces_path = make_mock_tracer()
         carrier = {}
